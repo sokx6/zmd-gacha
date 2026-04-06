@@ -27,18 +27,36 @@ func (db *Database) RegisterUser(username string, password string, email string,
 	return nil
 }
 
-func (db *Database) VerifyUser(username string, password string) (bool, error) {
-	var user models.User
-	if err := db.DB.Where("username = ?", username).First(&user).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return false, types.UserNotFoundError
+func (db *Database) VerifyUser(user types.UserLoginReq) (bool, uint, error) {
+	var dbUser models.User
+	if user.Username != "" {
+		if err := db.DB.Where("username = ?", user.Username).First(&dbUser).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return false, 0, types.UserNotFoundError
+			}
+			return false, 0, err
 		}
-		return false, err
+	} else if user.Email != "" {
+		if err := db.DB.Where("email = ?", user.Email).First(&dbUser).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return false, 0, types.UserNotFoundError
+			}
+			return false, 0, err
+		}
+	} else if user.UID != 0 {
+		if err := db.DB.Where("uid = ?", user.UID).First(&dbUser).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return false, 0, types.UserNotFoundError
+			}
+			return false, 0, err
+		}
+	} else {
+		return false, 0, types.UserError{} //todo: 定义一个更合适的错误类型
 	}
 
-	if !utils.CheckPWD(user.Password, password) {
-		return false, types.PasswordIncorrectError
+	if !utils.CheckPWD(dbUser.Password, user.Password) {
+		return false, 0, types.PasswordIncorrectError
 	}
 
-	return true, nil
+	return true, dbUser.UID, nil
 }

@@ -5,6 +5,7 @@ go 1.26.1
 require (
 	github.com/BurntSushi/toml v1.6.0
 	github.com/glebarez/sqlite v1.11.0
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/labstack/echo/v4 v4.15.1
 	golang.org/x/crypto v0.46.0
 	gorm.io/driver/mysql v1.6.0

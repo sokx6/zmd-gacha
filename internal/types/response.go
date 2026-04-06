@@ -6,5 +6,7 @@ type UserRstRsp struct {
 }
 
 type UserLoginRsp struct {
-	Message string `json:"message"`
+	Message      string `json:"message"`
+	AccessToken  string `json:"access_token,omitempty"`
+	RefreshToken string `json:"refresh_token,omitempty"`
 }

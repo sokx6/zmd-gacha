@@ -61,7 +61,7 @@ func (database *Database) InitDB() error {
 		return fmt.Errorf("数据库连接错误: %w", err)
 	}
 
-	database.DB.AutoMigrate(&models.User{}, &models.Character{})
+	database.DB.AutoMigrate(&models.User{}, &models.Character{}, &models.RefreshToken{})
 
 	var uids []uint
 	database.DB.Model(&models.User{}).Pluck("uid", &uids)

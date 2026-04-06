@@ -11,7 +11,7 @@ type Config struct {
 	App      AppConfig
 	Gacha    GachaConfig
 	Database DataBaseConfig
-	JWT      JWTConfig
+	Auth     AuthConfig
 }
 
 // 应用配置，只是监听的地址和端口
@@ -33,10 +33,11 @@ type DataBaseConfig struct {
 	DSN    string `toml:"dsn"`
 }
 
-// JWT配置，包括私钥，AccessToken和RefreshToken的过期时间(以秒为单位)
-type JWTConfig struct {
+// 认证配置，包括私钥，AccessToken和RefreshToken的过期时间(以秒为单位)
+type AuthConfig struct {
 	Secret             string `toml:"secret"`
 	AccessTokenExpire  int    `toml:"access_token_expire"`
+	RefreshTokenLength int    `toml:"refresh_token_length"`
 	RefreshTokenExpire int    `toml:"refresh_token_expire"`
 }
 

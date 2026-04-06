@@ -28,7 +28,7 @@ func NewServer(cfg_path string) *Server {
 	if err != nil {
 		panic(err)
 	}
-	authService := service.NewAuthService(db)
+	authService := service.NewAuthService(db, cfg.Auth)
 	authHandler := handler.NewAuthHandler(authService)
 
 	e := echo.New()

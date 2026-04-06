@@ -68,10 +68,10 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		})
 	}
 
-	isValid, err := h.Service.Login(req.Username, req.Password)
+	isValid, uid, err := h.Service.Login(req)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, types.UserLoginRsp{
-			Message: fmt.Sprintf("登录失败: %s", err.Error()),
+			Message: fmt.Sprintf("登录失败: %s", err.Error()), //todo 状态码不合适
 		})
 	} else if !isValid {
 		return c.JSON(http.StatusUnauthorized, types.UserLoginRsp{
@@ -79,7 +79,21 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		})
 	}
 
+	refreshToken, err := h.Service.GenerateRefreshToken()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, types.UserLoginRsp{
+			Message: "生成刷新令牌失败",
+		})
+	}
+	accessToken, err := h.Service.GenerateAccessToken(uid)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, types.UserLoginRsp{
+			Message: "生成访问令牌失败",
+		})
+	}
 	return c.JSON(http.StatusOK, types.UserLoginRsp{
-		Message: "登录成功",
+		Message:      "登录成功",
+		RefreshToken: refreshToken,
+		AccessToken:  accessToken,
 	})
 }
