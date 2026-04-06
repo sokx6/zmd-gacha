@@ -1,5 +1,7 @@
 package types
 
+import "zmd-gacha/internal/models"
+
 type UserRstReq struct {
 	Username string `json:"username"`
 	Nickname string `json:"nickname"`
@@ -18,4 +20,8 @@ type UserLoginReq struct {
 type TokenRefReq struct {
 	UID          uint   `json:"uid"`
 	RefreshToken string `json:"refresh_token"`
+}
+
+type ProfileUpdateReq struct {
+	User models.User `json:"user"`
 }

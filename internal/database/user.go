@@ -60,3 +60,10 @@ func (db *Database) VerifyUser(user types.UserLoginReq) (bool, uint, error) {
 
 	return true, dbUser.UID, nil
 }
+
+func (db *Database) UpdateProfile(user models.User) error {
+	if err := db.DB.Model(&models.User{}).Where("uid = ?", user.UID).Updates(user).Error; err != nil {
+		return err
+	}
+	return nil
+}

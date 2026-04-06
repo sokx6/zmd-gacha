@@ -16,3 +16,7 @@ type TokenRefRsp struct {
 	AccessToken  string `json:"access_token,omitempty"`
 	RefreshToken string `json:"refresh_token,omitempty"`
 }
+
+type ProfileUpdateRsp struct {
+	Message string `json:"message"`
+}
