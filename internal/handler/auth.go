@@ -97,3 +97,30 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		AccessToken:  accessToken,
 	})
 }
+
+// 刷新令牌处理函数
+func (h *AuthHandler) Refresh(c echo.Context) error {
+	var req types.TokenRefReq
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, types.TokenRefRsp{
+			Message: "不合法请求",
+		})
+	} else if req.UID == 0 || req.RefreshToken == "" {
+		return c.JSON(http.StatusBadRequest, types.TokenRefRsp{
+			Message: "UID或刷新令牌不能为空",
+		})
+	}
+
+	newAccessToken, newRefreshToken, err := h.Service.RefreshToken(req.UID, req.RefreshToken)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, types.TokenRefRsp{
+			Message: "刷新令牌失败",
+		})
+	}
+
+	return c.JSON(http.StatusOK, types.TokenRefRsp{
+		Message:      "刷新成功",
+		AccessToken:  newAccessToken,
+		RefreshToken: newRefreshToken,
+	})
+}

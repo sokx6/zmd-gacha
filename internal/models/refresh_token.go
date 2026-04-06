@@ -3,8 +3,9 @@ package models
 import "time"
 
 type RefreshToken struct {
-	UID       uint `gorm:"primaryKey"`
-	Token     string
+	ID        uint   `gorm:"primaryKey"`
+	UID       uint   `gorm:"not null"`
+	Token     string `gorm:"not null"`
 	ExpiredAt time.Time
 	Expired   bool
 }

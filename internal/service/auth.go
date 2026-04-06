@@ -63,6 +63,32 @@ func (s *AuthService) Login(user types.UserLoginReq) (bool, uint, error) {
 	}
 	return isValid, uid, nil
 }
+func (s *AuthService) Logout(uid uint, token string) error {
+	return s.DB.DeleteRefreshToken(uid, token)
+}
+
+func (s *AuthService) RefreshToken(uid uint, refreshToken string) (string, string, error) {
+	// 验证刷新令牌
+	valid, err := s.DB.ValidateRefreshToken(uid, refreshToken)
+	if err != nil {
+		return "", "", fmt.Errorf("验证刷新令牌失败: %w", err)
+	}
+	if !valid {
+		return "", "", fmt.Errorf("刷新令牌无效")
+	}
+
+	if err := s.DB.DeleteRefreshToken(uid, refreshToken); err != nil {
+		return "", "", fmt.Errorf("删除刷新令牌失败: %w", err)
+	}
+
+	newRefreshToken, err := s.GenerateRefreshToken(uid)
+	newAccessToken, err := s.GenerateAccessToken(uid)
+	if err != nil {
+		return "", "", fmt.Errorf("生成新令牌失败: %w", err)
+	}
+	return newAccessToken, newRefreshToken, nil
+
+}
 
 func (s *AuthService) GenerateRefreshToken(uid uint) (string, error) {
 	token, err := utils.GenerateRefreshToken(s.Cfg.RefreshTokenLength)
