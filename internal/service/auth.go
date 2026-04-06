@@ -64,7 +64,7 @@ func (s *AuthService) Login(user types.UserLoginReq) (bool, uint, error) {
 	return isValid, uid, nil
 }
 
-func (s *AuthService) GenerateRefreshToken() (string, error) {
+func (s *AuthService) GenerateRefreshToken(uid uint) (string, error) {
 	token, err := utils.GenerateRefreshToken(s.Cfg.RefreshTokenLength)
 	if err != nil {
 		return "", fmt.Errorf("生成刷新令牌失败: %w", err)
@@ -72,7 +72,7 @@ func (s *AuthService) GenerateRefreshToken() (string, error) {
 
 	now := time.Now()
 	expiredAt := now.Add(time.Duration(s.Cfg.RefreshTokenExpire) * time.Second)
-	if err := s.DB.StoreRefreshToken(0, token, expiredAt); err != nil {
+	if err := s.DB.StoreRefreshToken(uid, token, expiredAt); err != nil {
 		return "", fmt.Errorf("存储刷新令牌失败: %w", err)
 	}
 	return token, nil

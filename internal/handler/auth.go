@@ -79,7 +79,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		})
 	}
 
-	refreshToken, err := h.Service.GenerateRefreshToken()
+	refreshToken, err := h.Service.GenerateRefreshToken(uid)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, types.UserLoginRsp{
 			Message: "生成刷新令牌失败",
