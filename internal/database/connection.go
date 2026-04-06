@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"zmd-gacha/internal/config"
+	"zmd-gacha/internal/models"
 
 	"github.com/glebarez/sqlite"
 	"gorm.io/driver/mysql"
@@ -15,10 +16,28 @@ type Database struct {
 	Cfg *config.DataBaseConfig
 }
 
+var defaultDB *Database
+
 func NweDatabase(Cfg config.DataBaseConfig) *Database {
 	return &Database{
 		Cfg: &Cfg,
 	}
+}
+
+func Init(cfg config.DataBaseConfig) error {
+	db := NweDatabase(cfg)
+	if err := db.InitDB(); err != nil {
+		return err
+	}
+	defaultDB = db
+	return nil
+}
+
+func Get() (*Database, error) {
+	if defaultDB == nil || defaultDB.DB == nil {
+		return nil, fmt.Errorf("数据库未初始化")
+	}
+	return defaultDB, nil
 }
 
 func (database *Database) InitDB() error {
@@ -40,5 +59,6 @@ func (database *Database) InitDB() error {
 		return fmt.Errorf("数据库连接错误: %w", err)
 	}
 
+	database.DB.AutoMigrate(&models.User{}, &models.Character{})
 	return nil
 }

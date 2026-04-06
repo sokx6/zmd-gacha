@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"zmd-gacha/internal/service"
 	"zmd-gacha/internal/types"
@@ -30,7 +31,7 @@ func Register(c echo.Context) error {
 
 	if err := service.Register(req.Username, req.Password, req.Email); err != nil {
 		return c.JSON(http.StatusInternalServerError, types.Response{
-			Message: "注册失败",
+			Message: fmt.Sprintf("注册失败: %s", err.Error()),
 		})
 	}
 

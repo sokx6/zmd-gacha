@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"zmd-gacha/internal/api"
 	"zmd-gacha/internal/config"
+	"zmd-gacha/internal/database"
 
 	"github.com/labstack/echo/v4"
 )
@@ -16,6 +17,9 @@ type Server struct {
 func NewServer(cfg_path string) *Server {
 	cfg, err := config.LoadConfig(cfg_path)
 	if err != nil {
+		panic(err)
+	}
+	if err := database.Init(cfg.Database); err != nil {
 		panic(err)
 	}
 	e := echo.New()
