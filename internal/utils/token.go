@@ -9,7 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func GenerateJWT(uid uint, expireTime int, secret string) (string, error) {
+func generateJWT(uid uint, expireTime int, secret string) (string, error) {
 	// 创建一个新的 JWT
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"uid": uid,
@@ -20,9 +20,13 @@ func GenerateJWT(uid uint, expireTime int, secret string) (string, error) {
 	return token.SignedString([]byte(secret))
 }
 
-func ParseJWT(key string, jwtStr string) (uint, error) {
+func parseJWT(key string, jwtStr string) (uint, error) {
 	token, err := jwt.Parse(jwtStr, func(token *jwt.Token) (interface{}, error) {
-		return key, nil
+		// 检查算法是否为 HS256
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
+		return []byte(key), nil
 	})
 
 	if err != nil {
@@ -38,20 +42,20 @@ func ParseJWT(key string, jwtStr string) (uint, error) {
 		return 0, errors.New("invalid claims")
 	}
 
-	uid, ok := claims["uid"].(uint)
+	uid, ok := claims["uid"].(float64)
 	if !ok {
 		return 0, errors.New("invalid uid")
 	}
 
-	return uid, nil
+	return uint(uid), nil
 }
 
 func GenerateAccessToken(uid uint, secret string) (string, error) {
-	return GenerateJWT(uid, 3600, secret)
+	return generateJWT(uid, 3600, secret)
 }
 
-func ValidateAccessToken(tokenStr string, secret string) (uint, error) {
-	return ParseJWT(secret, tokenStr)
+func ValidateAccessToken(key string, tokenStr string) (uint, error) {
+	return parseJWT(key, tokenStr)
 }
 
 func GenerateRefreshToken(length int) (string, error) {
