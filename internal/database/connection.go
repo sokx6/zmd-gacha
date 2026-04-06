@@ -12,15 +12,17 @@ import (
 )
 
 type Database struct {
-	DB  *gorm.DB
-	Cfg *config.DataBaseConfig
+	DB   *gorm.DB
+	Cfg  *config.DataBaseConfig
+	UIDs map[uint]bool
 }
 
 var defaultDB *Database
 
 func NweDatabase(Cfg config.DataBaseConfig) *Database {
 	return &Database{
-		Cfg: &Cfg,
+		Cfg:  &Cfg,
+		UIDs: make(map[uint]bool),
 	}
 }
 
@@ -60,5 +62,12 @@ func (database *Database) InitDB() error {
 	}
 
 	database.DB.AutoMigrate(&models.User{}, &models.Character{})
+
+	var uids []uint
+	database.DB.Model(&models.User{}).Pluck("uid", &uids)
+	for _, uid := range uids {
+		database.UIDs[uid] = true
+	}
+
 	return nil
 }

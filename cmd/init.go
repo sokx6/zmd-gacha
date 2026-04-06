@@ -5,6 +5,8 @@ import (
 	"zmd-gacha/internal/api"
 	"zmd-gacha/internal/config"
 	"zmd-gacha/internal/database"
+	"zmd-gacha/internal/handler"
+	"zmd-gacha/internal/service"
 
 	"github.com/labstack/echo/v4"
 )
@@ -22,8 +24,15 @@ func NewServer(cfg_path string) *Server {
 	if err := database.Init(cfg.Database); err != nil {
 		panic(err)
 	}
+	db, err := database.Get()
+	if err != nil {
+		panic(err)
+	}
+	authService := service.NewAuthService(db)
+	authHandler := handler.NewAuthHandler(authService)
+
 	e := echo.New()
-	api.RegisterRoutes(e)
+	api.RegisterRoutes(e, authHandler)
 
 	return &Server{
 		Echo: e,

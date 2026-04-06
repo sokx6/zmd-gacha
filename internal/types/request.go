@@ -5,3 +5,8 @@ type UserRstReq struct {
 	Password string
 	Email    string
 }
+
+type UserLoginReq struct {
+	Username string
+	Password string
+}
