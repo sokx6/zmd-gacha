@@ -34,9 +34,11 @@ func NewServer(cfg_path string) *Server {
 	authMiddleware := middleware.NewAuthMiddleware(authService)
 	userService := service.NewUserService(db)
 	userHandler := handler.NewUserHandler(userService)
+	gachaService := service.NewGachaService(db)
+	gachaHandler := handler.NewGachaHandler(gachaService)
 
 	e := echo.New()
-	api.RegisterRoutes(e, authHandler, userHandler, authMiddleware)
+	api.RegisterRoutes(e, authHandler, userHandler, authMiddleware, gachaHandler)
 
 	return &Server{
 		Echo: e,

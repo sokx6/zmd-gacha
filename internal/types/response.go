@@ -1,5 +1,9 @@
 package types
 
+import (
+	"zmd-gacha/internal/models"
+)
+
 type UserRstRsp struct {
 	UID     uint   `json:"uid"`
 	Message string `json:"message"`
@@ -18,5 +22,14 @@ type TokenRefRsp struct {
 }
 
 type ProfileUpdateRsp struct {
+	Message string `json:"message"`
+}
+
+type ErrorRsp struct {
+	Message string `json:"message"`
+}
+
+type PullOnceRsp struct {
+	models.Character
 	Message string `json:"message"`
 }

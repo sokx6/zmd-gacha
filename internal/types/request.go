@@ -25,3 +25,7 @@ type TokenRefReq struct {
 type ProfileUpdateReq struct {
 	User models.User `json:"user"`
 }
+
+type GachaPullReq struct {
+	PoolID uint `json:"pool_id"`
+}

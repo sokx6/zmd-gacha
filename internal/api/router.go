@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func RegisterRoutes(e *echo.Echo, authHandler *handler.AuthHandler, userHandler *handler.UserHandler, authMiddleware *middleware.AuthMiddleware) {
+func RegisterRoutes(e *echo.Echo, authHandler *handler.AuthHandler, userHandler *handler.UserHandler, authMiddleware *middleware.AuthMiddleware, gachaHandler *handler.GachaHandler) {
 	// 认证路由，不需要保护
 	auth := e.Group("/api/auth")
 	auth.GET("/ping", handler.Ping)
@@ -19,4 +19,5 @@ func RegisterRoutes(e *echo.Echo, authHandler *handler.AuthHandler, userHandler 
 	api := e.Group("/api")
 	api.Use(authMiddleware.Jwt)
 	api.PUT("/user/me", userHandler.UpdateProfile)
+	api.GET("/pull", gachaHandler.PullOnce)
 }
