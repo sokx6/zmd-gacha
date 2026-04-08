@@ -68,7 +68,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		})
 	}
 
-	isValid, uid, err := h.Service.Login(req)
+	isValid, uid, role, err := h.Service.Login(req)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, types.UserLoginRsp{
 			Message: fmt.Sprintf("登录失败: %s", err.Error()), //todo 状态码不合适
@@ -85,7 +85,13 @@ func (h *AuthHandler) Login(c echo.Context) error {
 			Message: "生成刷新令牌失败",
 		})
 	}
-	accessToken, err := h.Service.GenerateUserAccessToken(uid)
+	var accessToken string
+	switch role {
+	case "admin":
+		accessToken, err = h.Service.GenerateAdminAccessToken(uid)
+	default:
+		accessToken, err = h.Service.GenerateUserAccessToken(uid)
+	}
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, types.UserLoginRsp{
 			Message: "生成访问令牌失败",

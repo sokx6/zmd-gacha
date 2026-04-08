@@ -53,21 +53,27 @@ func (s *AuthService) Register(username string, password string, email string) (
 	return uid, nil
 }
 
-// 用户登录服务，返回是否登录成功、用户UID和错误
-func (s *AuthService) Login(user types.UserLoginReq) (bool, uint, error) {
+// 用户登录服务，返回是否登录成功、用户UID、角色和错误
+func (s *AuthService) Login(user types.UserLoginReq) (bool, uint, string, error) {
 	db := s.DB
 	if db == nil {
 		var err error
 		db, err = database.Get()
 		if err != nil {
-			return false, 0, types.DatabaseGetError
+			return false, 0, "", types.DatabaseGetError
 		}
 	}
 	isValid, uid, err := db.VerifyUser(user)
 	if err != nil {
-		return false, 0, err
+		return false, 0, "", err
 	}
-	return isValid, uid, nil
+
+	dbUser, err := db.GetUserByUID(uid)
+	if err != nil {
+		return false, 0, "", err
+	}
+
+	return isValid, uid, dbUser.Role, nil
 }
 func (s *AuthService) Logout(uid uint, token string) error {
 	return s.DB.DeleteRefreshToken(uid, token)
