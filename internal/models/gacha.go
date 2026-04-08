@@ -51,11 +51,14 @@ type GachaRecord struct {
 }
 
 type UserCharacter struct {
-	ID          uint      `gorm:"primarykey"`
-	UserID      uint      `gorm:"not null;index:idx_user_char,unique"`
-	User        User      `gorm:"foreignKey:UserID;references:UID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	CharacterID uint      `gorm:"not null;index:idx_user_char,unique"`
-	Character   Character `gorm:"foreignKey:CharacterID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	OwnedCount  int       `gorm:"not null;default:0"`
-	Level       int       `gorm:"not null;default:0"`
+	ID                     uint      `gorm:"primarykey"`
+	UserID                 uint      `gorm:"not null;index:idx_user_char,unique"`
+	User                   User      `gorm:"foreignKey:UserID;references:UID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	CharacterID            uint      `gorm:"not null;index:idx_user_char,unique"`
+	Character              Character `gorm:"foreignKey:CharacterID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	OwnedCount             int       `gorm:"not null;default:0"`
+	Level                  int       `gorm:"not null;default:0"`
+	FirstAcquiredAt        time.Time `gorm:"not null"`
+	FirstAcquiredPool      uint      `gorm:"not null"`
+	FirstAcquiredPullCount int       `gorm:"not null"`
 }

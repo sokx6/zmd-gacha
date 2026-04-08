@@ -16,3 +16,7 @@ func NewUserService(db *database.Database) *UserService {
 func (s *UserService) UpdateProfile(user models.User) error {
 	return s.DB.UpdateProfile(user)
 }
+
+func (s *UserService) GetUserCharacters(uid uint) ([]models.UserCharacter, error) {
+	return s.DB.GetUserCharacters(uid)
+}

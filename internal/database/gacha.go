@@ -1,6 +1,7 @@
 package database
 
 import (
+	"time"
 	"zmd-gacha/internal/models"
 	"zmd-gacha/internal/utils"
 
@@ -98,13 +99,12 @@ func (db *Database) PullAndUpdate(uid, poolId uint, pullCount int) ([]models.Cha
 		if err := db.createRecord(tx, uid, poolId, characterIds); err != nil {
 			return err
 		}
+		if err := db.updateUserCharacter(tx, uid, poolId, characterIds); err != nil {
+			return err
+		}
 		if err := db.updateUserPity(tx, uid, results); err != nil {
 			return err
 		}
-		if err := db.updateUserCharacter(tx, uid, characterIds); err != nil {
-			return err
-		}
-
 		return nil
 	})
 
@@ -136,20 +136,27 @@ func (db *Database) createRecord(tx *gorm.DB, uid, poolId uint, characterIds []u
 }
 
 // 更新用户角色信息
-func (db *Database) updateUserCharacter(tx *gorm.DB, uid uint, characterIds []uint) error {
+func (db *Database) updateUserCharacter(tx *gorm.DB, uid, poolId uint, characterIds []uint) error {
 	if len(characterIds) == 0 {
 		return nil
 	}
-
-	for _, characterId := range characterIds {
+	var user models.User
+	if err := tx.Where("uid = ?", uid).First(&user).Error; err != nil {
+		return err
+	}
+	pullCount := user.PullCount
+	for i, characterId := range characterIds {
 		var userCharacter models.UserCharacter
 		if err := tx.Where("user_id = ? AND character_id = ?", uid, characterId).First(&userCharacter).Error; err != nil {
 			if err == gorm.ErrRecordNotFound {
 				newUserCharacter := models.UserCharacter{
-					UserID:      uid,
-					CharacterID: characterId,
-					OwnedCount:  1,
-					Level:       0,
+					UserID:                 uid,
+					CharacterID:            characterId,
+					OwnedCount:             1,
+					Level:                  0,
+					FirstAcquiredAt:        time.Now(),
+					FirstAcquiredPool:      poolId,
+					FirstAcquiredPullCount: pullCount + i + 1,
 				}
 				if err := tx.Create(&newUserCharacter).Error; err != nil {
 					return err
@@ -195,26 +202,4 @@ func (db *Database) updateUserPity(tx *gorm.DB, uid uint, characters []models.Ch
 		return err
 	}
 	return nil
-}
-
-// 更新一次抽卡造成的所有数据变动
-func (db *Database) UpdateGacha(uid, poolId uint, characters []models.Character) error {
-	return db.DB.Transaction(func(tx *gorm.DB) error {
-		var characterIds []uint
-		for _, char := range characters {
-			characterIds = append(characterIds, char.ID)
-		}
-
-		if err := db.createRecord(tx, uid, poolId, characterIds); err != nil {
-			return err
-		}
-		if err := db.updateUserPity(tx, uid, characters); err != nil {
-			return err
-		}
-		if err := db.updateUserCharacter(tx, uid, characterIds); err != nil {
-			return err
-		}
-
-		return nil
-	})
 }

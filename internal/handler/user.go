@@ -35,3 +35,19 @@ func (h *UserHandler) UpdateProfile(c echo.Context) error {
 	})
 
 }
+
+func (h *UserHandler) GetUserCharacters(c echo.Context) error {
+	uid := c.Get("uid").(uint)
+
+	characters, err := h.Service.GetUserCharacters(uid)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, types.CharsGetRsp{
+			Message: "获取角色列表失败",
+		})
+	}
+
+	return c.JSON(http.StatusOK, types.CharsGetRsp{
+		Message:    "获取角色列表成功",
+		Characters: characters,
+	})
+}

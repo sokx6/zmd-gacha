@@ -20,7 +20,7 @@ func RegisterRoutes(e *echo.Echo, authHandler *handler.AuthHandler, userHandler 
 	// 普通登录用户可访问
 	api.PUT("/user/me", userHandler.UpdateProfile)
 	api.GET("/pull", gachaHandler.Pull)
-
+	api.GET("/characters", userHandler.GetUserCharacters)
 	// 仅管理员可访问
 	admin := api.Group("/admin")
 	admin.Use(authMiddleware.AdminJwt)

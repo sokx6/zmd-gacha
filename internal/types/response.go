@@ -51,3 +51,8 @@ type PoolCreateRsp struct {
 type InsertCharRsp struct {
 	Message string `json:"message"`
 }
+
+type CharsGetRsp struct {
+	Characters []models.UserCharacter `json:"characters"`
+	Message    string                 `json:"message"`
+}

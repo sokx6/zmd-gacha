@@ -89,3 +89,11 @@ func (db *Database) GetUserByUID(uid uint) (*models.User, error) {
 	}
 	return &user, nil
 }
+
+func (db *Database) GetUserCharacters(uid uint) ([]models.UserCharacter, error) {
+	var userCharacters []models.UserCharacter
+	if err := db.DB.Where("user_id = ?", uid).Preload("Character").Find(&userCharacters).Error; err != nil {
+		return nil, err
+	}
+	return userCharacters, nil
+}
