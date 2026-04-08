@@ -19,5 +19,5 @@ func RegisterRoutes(e *echo.Echo, authHandler *handler.AuthHandler, userHandler 
 	api := e.Group("/api")
 	api.Use(authMiddleware.Jwt)
 	api.PUT("/user/me", userHandler.UpdateProfile)
-	api.GET("/pull", gachaHandler.PullOnce)
+	api.GET("/pull", gachaHandler.Pull)
 }

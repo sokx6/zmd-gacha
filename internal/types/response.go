@@ -33,3 +33,8 @@ type PullOnceRsp struct {
 	models.Character
 	Message string `json:"message"`
 }
+
+type PullTenRsp struct {
+	Characters []models.Character `json:"characters"`
+	Message    string             `json:"message"`
+}

@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"net/http"
 	"strconv"
+	"zmd-gacha/internal/models"
 	"zmd-gacha/internal/service"
 	"zmd-gacha/internal/types"
 
@@ -16,8 +18,9 @@ func NewGachaHandler(service *service.GachaService) *GachaHandler {
 	return &GachaHandler{Service: service}
 }
 
-func (h *GachaHandler) PullOnce(c echo.Context) error {
+func (h *GachaHandler) Pull(c echo.Context) error {
 	poolId := c.QueryParam("pool_id")
+	times := c.QueryParam("times")
 	if poolId == "" {
 		return c.JSON(400, types.ErrorRsp{Message: "缺少pool_id参数"})
 	}
@@ -28,14 +31,28 @@ func (h *GachaHandler) PullOnce(c echo.Context) error {
 	}
 
 	uid := c.Get("uid").(uint)
-
-	result, err := h.Service.PullOnce(uint(poolIdUint), uid)
-	if err != nil {
-		return c.JSON(500, types.ErrorRsp{Message: "抽卡失败"})
+	var result models.Character
+	var results []models.Character
+	switch times {
+	case "1":
+		result, err = h.Service.PullOnce(uint(poolIdUint), uid)
+		if err != nil {
+			return c.JSON(500, types.ErrorRsp{Message: "抽卡失败"})
+		}
+		return c.JSON(http.StatusOK, types.PullOnceRsp{
+			Character: result,
+			Message:   "抽卡成功",
+		})
+	case "10":
+		results, err = h.Service.PullTen(uint(poolIdUint), uid)
+		if err != nil {
+			return c.JSON(500, types.ErrorRsp{Message: "抽卡失败"})
+		}
+		return c.JSON(http.StatusOK, types.PullTenRsp{
+			Characters: results,
+			Message:    "抽卡成功",
+		})
+	default:
+		return c.JSON(400, types.ErrorRsp{Message: "times参数无效"})
 	}
-
-	return c.JSON(200, types.PullOnceRsp{
-		Character: result,
-		Message:   "抽卡成功",
-	})
 }

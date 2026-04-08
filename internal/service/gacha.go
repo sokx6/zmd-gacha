@@ -3,7 +3,6 @@ package service
 import (
 	"zmd-gacha/internal/database"
 	"zmd-gacha/internal/models"
-	"zmd-gacha/internal/utils"
 )
 
 type GachaService struct {
@@ -17,21 +16,21 @@ func NewGachaService(db *database.Database) *GachaService {
 }
 
 func (gs *GachaService) PullOnce(poolId uint, uid uint) (models.Character, error) {
-	cfg, user, err := gs.DB.GetPullCfg(poolId, uid)
+	results, err := gs.DB.PullAndUpdate(uid, poolId, 1)
 	if err != nil {
 		return models.Character{}, err
 	}
+	if len(results) == 0 {
+		return models.Character{}, err
+	}
 
-	var characters []models.Character
-	characters, err = gs.DB.GetCharacters(poolId)
+	return results[0], nil
+}
+
+func (gs *GachaService) PullTen(poolId uint, uid uint) ([]models.Character, error) {
+	results, err := gs.DB.PullAndUpdate(uid, poolId, 10)
 	if err != nil {
-		return models.Character{}, err
+		return nil, err
 	}
-	result := utils.Pull(cfg, characters, user)
-
-	if err := gs.DB.UpdateGacha(uid, poolId, result); err != nil {
-		return models.Character{}, err
-	}
-
-	return result, nil
+	return results, nil
 }

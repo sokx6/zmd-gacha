@@ -18,15 +18,15 @@ func Pull(config models.GachaPoolConfig, characters []models.Character, user mod
 	}
 
 	// 小保底
-	if user.PullCount-user.LastSCount >= 80 {
-		if isLimited() {
+	if user.PullCount-user.LastSCount >= config.SPityEnd {
+		if isLimited(config.LimitRateWhenS) {
 			return randomCharacter(sLimitedCharacters)
 		}
 		return randomCharacter(sResiCharacters)
 	}
 
 	// A保底
-	if user.PullCount-user.LastACount >= 10 {
+	if user.PullCount-user.LastACount >= config.AGuaranteeInterval {
 		return randomCharacter(aCharacters)
 	}
 
@@ -37,7 +37,7 @@ func Pull(config models.GachaPoolConfig, characters []models.Character, user mod
 		r := rand.New(source)
 		p := r.Float64()
 		if p < sRate {
-			if isLimited() {
+			if isLimited(config.LimitRateWhenS) {
 				return randomCharacter(sLimitedCharacters)
 			}
 			return randomCharacter(sResiCharacters)
@@ -52,6 +52,9 @@ func Pull(config models.GachaPoolConfig, characters []models.Character, user mod
 	r := rand.New(source)
 	p := r.Float64()
 	if p < config.SRankBaseRate {
+		if isLimited(config.LimitRateWhenS) {
+			return randomCharacter(sLimitedCharacters)
+		}
 		return randomCharacter(sResiCharacters)
 	} else if p < config.SRankBaseRate+config.ARankBaseRate {
 		return randomCharacter(aCharacters)
@@ -59,23 +62,41 @@ func Pull(config models.GachaPoolConfig, characters []models.Character, user mod
 	return randomCharacter(bCharacters)
 }
 
+func PullTen(config models.GachaPoolConfig, characters []models.Character, user models.User) []models.Character {
+	var results []models.Character
+	for i := 0; i < 10; i++ {
+		result := Pull(config, characters, user)
+		if result.Rank == "S" {
+			user.LastSCount = user.PullCount + 1
+			if result.IsLimited {
+				user.LastLimitedCount = user.PullCount + 1
+			}
+		}
+		if result.Rank == "A" {
+			user.LastACount = user.PullCount + 1
+		}
+		results = append(results, result)
+		user.PullCount++
+	}
+	return results
+}
+
 // 是否是限定
-func isLimited() bool {
+func isLimited(limitRateWhenS float64) bool {
 	source := rand.NewSource(time.Now().UnixNano())
 	r := rand.New(source)
-	switch r.Intn(2) {
-	case 0:
-		return false
-	case 1:
-		return true
-	}
-	return false
+	p := r.Float64()
+	return p < limitRateWhenS
 }
 
 func randomCharacter(characters []models.Character) models.Character {
 	source := rand.NewSource(time.Now().UnixNano())
 	r := rand.New(source)
-	return characters[r.Intn(len(characters))]
+	if len(characters) == 0 {
+		return models.Character{}
+	}
+	index := r.Intn(len(characters))
+	return characters[index]
 }
 
 func getSResiCharacters(characters []models.Character) []models.Character {
