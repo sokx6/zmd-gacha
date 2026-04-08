@@ -38,3 +38,16 @@ type PullTenRsp struct {
 	Characters []models.Character `json:"characters"`
 	Message    string             `json:"message"`
 }
+
+type CharCreateRsp struct {
+	models.Character
+	Message string `json:"message"`
+}
+
+type PoolCreateRsp struct {
+	PoolID  uint   `json:"pool_id"`
+	Message string `json:"message"`
+}
+type InsertCharRsp struct {
+	Message string `json:"message"`
+}

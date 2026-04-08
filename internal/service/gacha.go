@@ -34,3 +34,15 @@ func (gs *GachaService) PullTen(poolId uint, uid uint) ([]models.Character, erro
 	}
 	return results, nil
 }
+
+func (gs *GachaService) CreateCharacter(name string, rank string, isLimited bool, isUp bool) (models.Character, error) {
+	return gs.DB.CreateCharacter(name, rank, isLimited, isUp)
+}
+
+func (gs *GachaService) CreatePool(pool models.GachaPool, config models.GachaPoolConfig) (uint, error) {
+	return gs.DB.CreatePool(pool, config)
+}
+
+func (gs *GachaService) InsertCharacterToPool(poolId uint, characterId uint) error {
+	return gs.DB.InsertCharacterToPool(poolId, characterId)
+}

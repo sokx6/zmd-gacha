@@ -65,6 +65,7 @@ func (database *Database) InitDB() error {
 		&models.User{},
 		&models.Character{},
 		&models.GachaPool{},
+		&models.GachaPoolCharacter{},
 		&models.GachaPoolConfig{},
 		&models.GachaRecord{},
 		&models.UserCharacter{},

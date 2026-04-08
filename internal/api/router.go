@@ -8,16 +8,23 @@ import (
 )
 
 func RegisterRoutes(e *echo.Echo, authHandler *handler.AuthHandler, userHandler *handler.UserHandler, authMiddleware *middleware.AuthMiddleware, gachaHandler *handler.GachaHandler) {
-	// 认证路由，不需要保护
 	auth := e.Group("/api/auth")
 	auth.GET("/ping", handler.Ping)
 	auth.POST("/register", authHandler.Register)
 	auth.POST("/login", authHandler.Login)
 	auth.POST("/refresh", authHandler.Refresh)
 
-	// 其他路由需要认证
 	api := e.Group("/api")
 	api.Use(authMiddleware.Jwt)
+
+	// 普通登录用户可访问
 	api.PUT("/user/me", userHandler.UpdateProfile)
 	api.GET("/pull", gachaHandler.Pull)
+
+	// 仅管理员可访问
+	admin := api.Group("/admin")
+	admin.Use(authMiddleware.AdminJwt)
+	admin.POST("/characters", gachaHandler.CreateCharacter)
+	admin.POST("/pools", gachaHandler.CreatePool)
+	admin.POST("/pools/characters", gachaHandler.InsertCharacterToPool)
 }

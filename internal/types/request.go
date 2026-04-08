@@ -29,3 +29,20 @@ type ProfileUpdateReq struct {
 type GachaPullReq struct {
 	PoolID uint `json:"pool_id"`
 }
+
+type CharCreateReq struct {
+	Name      string `json:"name"`
+	Rank      string `json:"rank"`
+	IsLimited bool   `json:"is_limited"`
+	IsUp      bool   `json:"is_up"`
+}
+
+type PoolCreateReq struct {
+	Pool   models.GachaPool       `json:"pool"`
+	Config models.GachaPoolConfig `json:"config"`
+}
+
+type InsertCharReq struct {
+	PoolId      uint `json:"pool_id"`
+	CharacterId uint `json:"character_id"`
+}

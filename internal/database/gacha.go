@@ -137,32 +137,32 @@ func (db *Database) createRecord(tx *gorm.DB, uid, poolId uint, characterIds []u
 
 // 更新用户角色信息
 func (db *Database) updateUserCharacter(tx *gorm.DB, uid uint, characterIds []uint) error {
-	var newChars []models.UserCharacter
+	if len(characterIds) == 0 {
+		return nil
+	}
+
 	for _, characterId := range characterIds {
-		var uc models.UserCharacter
-		if err := tx.Where("user_id = ? AND character_id = ?", uid, characterId).First(&uc).Error; err != nil {
+		var userCharacter models.UserCharacter
+		if err := tx.Where("user_id = ? AND character_id = ?", uid, characterId).First(&userCharacter).Error; err != nil {
 			if err == gorm.ErrRecordNotFound {
-				newChar := models.UserCharacter{
+				newUserCharacter := models.UserCharacter{
 					UserID:      uid,
 					CharacterID: characterId,
 					OwnedCount:  1,
 					Level:       0,
 				}
-				newChars = append(newChars, newChar)
-			} else {
-				return err
+				if err := tx.Create(&newUserCharacter).Error; err != nil {
+					return err
+				}
 			}
 		} else {
-			uc.OwnedCount++
-			uc.Level++
-			if err := tx.Save(&uc).Error; err != nil {
+			userCharacter.OwnedCount++
+			if userCharacter.Level < 5 {
+				userCharacter.Level++
+			}
+			if err := tx.Save(&userCharacter).Error; err != nil {
 				return err
 			}
-		}
-	}
-	if len(newChars) > 0 {
-		if err := tx.Create(&newChars).Error; err != nil {
-			return err
 		}
 	}
 	return nil
@@ -177,14 +177,14 @@ func (db *Database) updateUserPity(tx *gorm.DB, uid uint, characters []models.Ch
 	for _, character := range characters {
 		user.PullCount++
 		rank := character.Rank
-		limited := character.IsLimited
+		up := character.IsUp
 		if rank == "S" {
 			user.LastSCount = user.PullCount
-			if limited {
-				user.LastSLimited = true
-				user.LastLimitedCount = user.PullCount
+			if up {
+				user.LastSUp = true
+				user.LastUpCount = user.PullCount
 			} else {
-				user.LastSLimited = false
+				user.LastSUp = false
 			}
 		}
 		if rank == "A" {

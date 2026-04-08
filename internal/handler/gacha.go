@@ -56,3 +56,49 @@ func (h *GachaHandler) Pull(c echo.Context) error {
 		return c.JSON(400, types.ErrorRsp{Message: "times参数无效"})
 	}
 }
+
+func (h *GachaHandler) CreateCharacter(c echo.Context) error {
+	var req types.CharCreateReq
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(400, types.ErrorRsp{Message: "请求参数无效"})
+	}
+
+	character, err := h.Service.CreateCharacter(req.Name, req.Rank, req.IsLimited, req.IsUp)
+	if err != nil {
+		return c.JSON(500, types.ErrorRsp{Message: "创建角色失败"})
+	}
+
+	return c.JSON(http.StatusOK, types.CharCreateRsp{
+		Character: character,
+		Message:   "创建角色成功",
+	})
+}
+
+func (h *GachaHandler) CreatePool(c echo.Context) error {
+	var req types.PoolCreateReq
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(400, types.ErrorRsp{Message: "请求参数无效"})
+	}
+	poolId, err := h.Service.CreatePool(req.Pool, req.Config)
+	if err != nil {
+		return c.JSON(500, types.ErrorRsp{Message: "创建卡池失败"})
+	}
+	return c.JSON(http.StatusOK, types.PoolCreateRsp{
+		PoolID:  poolId,
+		Message: "创建卡池成功",
+	})
+}
+
+func (h *GachaHandler) InsertCharacterToPool(c echo.Context) error {
+	var req types.InsertCharReq
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(400, types.ErrorRsp{Message: "请求参数无效"})
+	}
+	err := h.Service.InsertCharacterToPool(req.PoolId, req.CharacterId)
+	if err != nil {
+		return c.JSON(500, types.ErrorRsp{Message: "插入角色失败"})
+	}
+	return c.JSON(http.StatusOK, types.InsertCharRsp{
+		Message: "插入角色成功",
+	})
+}
