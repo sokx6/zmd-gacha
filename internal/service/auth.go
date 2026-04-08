@@ -26,22 +26,28 @@ func (s *AuthService) Register(username string, password string, email string) (
 		return 0, fmt.Errorf("密码哈希失败: %w", err)
 	}
 
+	var role string
+
+	switch username {
+	case "admin":
+		role = "admin"
+	default:
+		role = "user"
+	}
+
 	db := s.DB
-	if db == nil {
-		var err error
-		db, err = database.Get()
-		if err != nil {
-			return 0, fmt.Errorf("获取数据库实例失败: %w", err)
+	var uid uint
+	switch role {
+	case "user":
+		uid = utils.GenerateUID()
+		for ; db.UIDs[uid]; uid = utils.GenerateUID() {
 		}
+		db.UIDs[uid] = true
+	case "admin":
+		uid = 1000000000
 	}
 
-	uid := utils.GenerateUID()
-	for ; db.UIDs[uid]; uid = utils.GenerateUID() {
-	}
-
-	db.UIDs[uid] = true
-
-	if err = db.RegisterUser(username, hashed_pwd, email, uid); err != nil {
+	if err = db.RegisterUser(username, hashed_pwd, email, role, uid); err != nil {
 		return 0, fmt.Errorf("数据库存储用户数据失败: %w", err)
 	}
 	return uid, nil
@@ -69,7 +75,7 @@ func (s *AuthService) Logout(uid uint, token string) error {
 
 func (s *AuthService) RefreshToken(uid uint, refreshToken string) (string, string, error) {
 	// 验证刷新令牌
-	valid, err := s.DB.ValidateRefreshToken(uid, refreshToken)
+	valid, role, err := s.DB.ValidateRefreshToken(uid, refreshToken)
 	if err != nil {
 		return "", "", fmt.Errorf("验证刷新令牌失败: %w", err)
 	}
@@ -82,9 +88,20 @@ func (s *AuthService) RefreshToken(uid uint, refreshToken string) (string, strin
 	}
 
 	newRefreshToken, err := s.GenerateRefreshToken(uid)
-	newAccessToken, err := s.GenerateAccessToken(uid)
-	if err != nil {
-		return "", "", fmt.Errorf("生成新令牌失败: %w", err)
+	var newAccessToken string
+	switch role {
+	case "admin":
+		newAccessToken, err = s.GenerateAdminAccessToken(uid)
+		if err != nil {
+			return "", "", fmt.Errorf("生成管理员访问令牌失败: %w", err)
+		}
+	case "user":
+		newAccessToken, err = s.GenerateUserAccessToken(uid)
+		if err != nil {
+			return "", "", fmt.Errorf("生成用户访问令牌失败: %w", err)
+		}
+	default:
+		return "", "", fmt.Errorf("未知的用户角色: %s", role)
 	}
 	return newAccessToken, newRefreshToken, nil
 
@@ -104,8 +121,16 @@ func (s *AuthService) GenerateRefreshToken(uid uint) (string, error) {
 	return token, nil
 }
 
-func (s *AuthService) GenerateAccessToken(uid uint) (string, error) {
-	token, err := utils.GenerateAccessToken(uid, s.Cfg.Secret)
+func (s *AuthService) GenerateUserAccessToken(uid uint) (string, error) {
+	token, err := utils.GenerateUserAccessToken(uid, s.Cfg.AccessTokenExpire, s.Cfg.Secret)
+	if err != nil {
+		return "", fmt.Errorf("生成访问令牌失败: %w", err)
+	}
+	return token, nil
+}
+
+func (s *AuthService) GenerateAdminAccessToken(uid uint) (string, error) {
+	token, err := utils.GenerateAdminAccessToken(uid, s.Cfg.AccessTokenExpire, s.Cfg.Secret)
 	if err != nil {
 		return "", fmt.Errorf("生成访问令牌失败: %w", err)
 	}

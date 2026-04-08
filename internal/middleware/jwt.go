@@ -30,11 +30,21 @@ func (am *AuthMiddleware) Jwt(next echo.HandlerFunc) echo.HandlerFunc {
 
 		token := header[7:]
 
-		uid, err := utils.ValidateAccessToken(am.service.Cfg.Secret, token)
+		uid, role, err := utils.ValidateAccessToken(am.service.Cfg.Secret, token)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusUnauthorized, "不合法的访问令牌")
 		}
 		c.Set("uid", uid)
+		c.Set("role", role)
+		return next(c)
+	}
+}
+
+func (am *AuthMiddleware) AdminJwt(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		if c.Get("role") != "admin" {
+			return echo.NewHTTPError(http.StatusForbidden, "管理员权限不足")
+		}
 		return next(c)
 	}
 }

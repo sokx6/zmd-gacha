@@ -85,7 +85,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 			Message: "生成刷新令牌失败",
 		})
 	}
-	accessToken, err := h.Service.GenerateAccessToken(uid)
+	accessToken, err := h.Service.GenerateUserAccessToken(uid)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, types.UserLoginRsp{
 			Message: "生成访问令牌失败",
