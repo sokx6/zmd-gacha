@@ -37,7 +37,7 @@ func (h *GachaHandler) Pull(c echo.Context) error {
 	case "1":
 		result, err = h.Service.PullOnce(uint(poolIdUint), uid)
 		if err != nil {
-			return c.JSON(500, types.ErrorRsp{Message: "抽卡失败"})
+			return err
 		}
 		return c.JSON(http.StatusOK, types.PullOnceRsp{
 			Character: result,
@@ -46,7 +46,7 @@ func (h *GachaHandler) Pull(c echo.Context) error {
 	case "10":
 		results, err = h.Service.PullTen(uint(poolIdUint), uid)
 		if err != nil {
-			return c.JSON(500, types.ErrorRsp{Message: "抽卡失败"})
+			return err
 		}
 		return c.JSON(http.StatusOK, types.PullTenRsp{
 			Characters: results,
@@ -65,7 +65,7 @@ func (h *GachaHandler) CreateCharacter(c echo.Context) error {
 
 	character, err := h.Service.CreateCharacter(req.Name, req.Rank, req.IsLimited, req.IsUp)
 	if err != nil {
-		return c.JSON(500, types.ErrorRsp{Message: "创建角色失败"})
+		return err
 	}
 
 	return c.JSON(http.StatusOK, types.CharCreateRsp{
@@ -81,7 +81,7 @@ func (h *GachaHandler) CreatePool(c echo.Context) error {
 	}
 	poolId, err := h.Service.CreatePool(req.Pool, req.Config)
 	if err != nil {
-		return c.JSON(500, types.ErrorRsp{Message: "创建卡池失败"})
+		return err
 	}
 	return c.JSON(http.StatusOK, types.PoolCreateRsp{
 		PoolID:  poolId,
@@ -96,7 +96,7 @@ func (h *GachaHandler) InsertCharacterToPool(c echo.Context) error {
 	}
 	err := h.Service.InsertCharacterToPool(req.PoolId, req.CharacterId)
 	if err != nil {
-		return c.JSON(500, types.ErrorRsp{Message: "插入角色失败"})
+		return err
 	}
 	return c.JSON(http.StatusOK, types.InsertCharRsp{
 		Message: "插入角色成功",
@@ -114,7 +114,7 @@ func (h *GachaHandler) GetPoolInfo(c echo.Context) error {
 	}
 	poolInfo, err := h.Service.GetPoolInfo(uint(poolIdUint))
 	if err != nil {
-		return c.JSON(500, types.ErrorRsp{Message: "获取卡池信息失败"})
+		return err
 	}
 	return c.JSON(http.StatusOK, types.PoolInfoRsp{
 		Pool:    poolInfo,

@@ -1,7 +1,10 @@
 package database
 
 import (
+	"errors"
+	"net/http"
 	"zmd-gacha/internal/models"
+	"zmd-gacha/internal/types"
 
 	"gorm.io/gorm"
 )
@@ -80,11 +83,18 @@ func (db *Database) InsertCharacterToPool(poolId uint, characterId uint) error {
 	var pool models.GachaPool
 	if err := tx.Where("id = ?", poolId).Preload("Config").First(&pool).Error; err != nil {
 		tx.Rollback()
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return types.NewAppError(http.StatusNotFound, "未找到对应的卡池", err)
+		}
 		return err
 	}
 	// 查询角色
 	var character models.Character
 	if err := tx.Where("id = ?", characterId).First(&character).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			tx.Rollback()
+			return types.NewAppError(http.StatusNotFound, "未找到对应的角色", err)
+		}
 		tx.Rollback()
 		return err
 	}

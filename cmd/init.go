@@ -38,6 +38,7 @@ func NewServer(cfg_path string) *Server {
 	gachaHandler := handler.NewGachaHandler(gachaService)
 
 	e := echo.New()
+	e.HTTPErrorHandler = middleware.AppHTTPErrorHandler
 	api.RegisterRoutes(e, authHandler, userHandler, authMiddleware, gachaHandler)
 
 	return &Server{

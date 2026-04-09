@@ -1,12 +1,9 @@
 package database
 
 import (
-	"errors"
-	"fmt"
 	"time"
 	"zmd-gacha/internal/models"
-
-	"gorm.io/gorm"
+	"zmd-gacha/internal/types"
 )
 
 func (db *Database) StoreRefreshToken(uid uint, token string, expiredAt time.Time) error {
@@ -26,18 +23,16 @@ func (db *Database) ValidateRefreshToken(uid uint, token string) (bool, string, 
 	var rt models.RefreshToken
 	err := db.DB.Where("uid = ? AND token = ?", uid, token).First(&rt).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return false, "", fmt.Errorf("查询刷新令牌失败: %w", err)
-		}
-		return false, "", fmt.Errorf("查询刷新令牌失败: %w", err)
+		return false, "", err
 	}
 	if rt.Expired || time.Now().After(rt.ExpiredAt) {
-		return false, "", nil
+		return false, "", types.InvaildTokenError
 	}
+
 	var user models.User
 	err = db.DB.Where("uid = ?", uid).First(&user).Error
 	if err != nil {
-		return false, "", fmt.Errorf("查询用户信息失败: %w", err)
+		return true, "", err
 	}
 
 	return true, user.Role, nil

@@ -1,11 +1,9 @@
 package database
 
 import (
+	"fmt"
 	"zmd-gacha/internal/models"
-	"zmd-gacha/internal/types"
 	"zmd-gacha/internal/utils"
-
-	"gorm.io/gorm"
 )
 
 func (db *Database) RegisterUser(username string, password string, email string, role string, uid uint) error {
@@ -18,45 +16,31 @@ func (db *Database) RegisterUser(username string, password string, email string,
 	}
 
 	if err := db.DB.Create(&user).Error; err != nil {
-		switch err {
-		case gorm.ErrDuplicatedKey:
-			return types.UserExistsError
-		default:
-			return err
-		}
+		return err
 	}
 	return nil
 }
 
-func (db *Database) VerifyUser(user types.UserLoginReq) (bool, uint, error) {
+func (db *Database) VerifyUser(username string, password string, uid uint, email string) (bool, uint, error) {
 	var dbUser models.User
-	if user.Username != "" {
-		if err := db.DB.Where("username = ?", user.Username).First(&dbUser).Error; err != nil {
-			if err == gorm.ErrRecordNotFound {
-				return false, 0, types.UserNotFoundError
-			}
+	if username != "" {
+		if err := db.DB.Where("username = ?", username).First(&dbUser).Error; err != nil {
 			return false, 0, err
 		}
-	} else if user.Email != "" {
-		if err := db.DB.Where("email = ?", user.Email).First(&dbUser).Error; err != nil {
-			if err == gorm.ErrRecordNotFound {
-				return false, 0, types.UserNotFoundError
-			}
+	} else if email != "" {
+		if err := db.DB.Where("email = ?", email).First(&dbUser).Error; err != nil {
 			return false, 0, err
 		}
-	} else if user.UID != 0 {
-		if err := db.DB.Where("uid = ?", user.UID).First(&dbUser).Error; err != nil {
-			if err == gorm.ErrRecordNotFound {
-				return false, 0, types.UserNotFoundError
-			}
+	} else if uid != 0 {
+		if err := db.DB.Where("uid = ?", uid).First(&dbUser).Error; err != nil {
 			return false, 0, err
 		}
 	} else {
-		return false, 0, types.UserError{} //todo: 定义一个更合适的错误类型
+		return false, 0, fmt.Errorf("缺少登录标识符")
 	}
 
-	if !utils.CheckPWD(dbUser.Password, user.Password) {
-		return false, 0, types.PasswordIncorrectError
+	if !utils.CheckPWD(dbUser.Password, password) {
+		return false, 0, fmt.Errorf("密码错误")
 	}
 
 	return true, dbUser.UID, nil
@@ -82,9 +66,6 @@ func (db *Database) GetGachaRecords(uid uint) ([]models.GachaRecord, error) {
 func (db *Database) GetUserByUID(uid uint) (*models.User, error) {
 	var user models.User
 	if err := db.DB.Where("uid = ?", uid).First(&user).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, types.UserNotFoundError
-		}
 		return nil, err
 	}
 	return &user, nil

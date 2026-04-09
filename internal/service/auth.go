@@ -1,13 +1,16 @@
 package service
 
 import (
-	"fmt"
+	"errors"
+	"net/http"
 	"time"
 
 	"zmd-gacha/internal/config"
 	"zmd-gacha/internal/database"
 	"zmd-gacha/internal/types"
 	"zmd-gacha/internal/utils"
+
+	"gorm.io/gorm"
 )
 
 type AuthService struct {
@@ -23,7 +26,7 @@ func NewAuthService(db *database.Database, cfg config.AuthConfig) *AuthService {
 func (s *AuthService) Register(username string, password string, email string) (uint, error) {
 	hashed_pwd, err := utils.HashPWD(password)
 	if err != nil {
-		return 0, fmt.Errorf("密码哈希失败: %w", err)
+		return 0, types.NewAppError(http.StatusInternalServerError, "密码服务错误", err)
 	}
 
 	var role string
@@ -48,81 +51,111 @@ func (s *AuthService) Register(username string, password string, email string) (
 	}
 
 	if err = db.RegisterUser(username, hashed_pwd, email, role, uid); err != nil {
-		return 0, fmt.Errorf("数据库存储用户数据失败: %w", err)
+		if errors.Is(gorm.ErrDuplicatedKey, err) {
+			return 0, types.NewAppError(http.StatusConflict, "用户已存在", err)
+		} else {
+			return 0, types.NewAppError(http.StatusInternalServerError, "数据库错误", err)
+		}
 	}
 	return uid, nil
 }
 
 // 用户登录服务，返回是否登录成功、用户UID、角色和错误
-func (s *AuthService) Login(user types.UserLoginReq) (bool, uint, string, error) {
+func (s *AuthService) Login(username string, password string, uid uint, email string) (bool, uint, string, error) {
 	db := s.DB
 	if db == nil {
 		var err error
 		db, err = database.Get()
 		if err != nil {
-			return false, 0, "", types.DatabaseGetError
+			return false, 0, "", types.NewAppError(http.StatusInternalServerError, "数据库错误", err)
 		}
 	}
-	isValid, uid, err := db.VerifyUser(user)
+	isValid, uid, err := db.VerifyUser(username, password, uid, email)
 	if err != nil {
-		return false, 0, "", err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, 0, "", types.NewAppError(http.StatusUnauthorized, "用户不存在", err)
+		} else {
+			return false, 0, "", types.NewAppError(http.StatusInternalServerError, "数据库错误", err)
+		}
 	}
 
 	dbUser, err := db.GetUserByUID(uid)
 	if err != nil {
-		return false, 0, "", err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, 0, "", types.NewAppError(http.StatusUnauthorized, "用户不存在", err)
+		} else {
+			return false, 0, "", types.NewAppError(http.StatusInternalServerError, "数据库错误", err)
+		}
 	}
 
 	return isValid, uid, dbUser.Role, nil
 }
+
 func (s *AuthService) Logout(uid uint, token string) error {
-	return s.DB.DeleteRefreshToken(uid, token)
+	if err := s.DB.DeleteRefreshToken(uid, token); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return types.NewAppError(http.StatusUnauthorized, "刷新令牌或用户不存在", err)
+		} else {
+			return types.NewAppError(http.StatusInternalServerError, "数据库错误", err)
+		}
+	}
+	return nil
 }
 
 func (s *AuthService) RefreshToken(uid uint, refreshToken string) (string, string, error) {
 	// 验证刷新令牌
 	valid, role, err := s.DB.ValidateRefreshToken(uid, refreshToken)
 	if err != nil {
-		return "", "", fmt.Errorf("验证刷新令牌失败: %w", err)
-	}
-	if !valid {
-		return "", "", fmt.Errorf("刷新令牌无效")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			if valid {
+				return "", "", types.NewAppError(http.StatusUnauthorized, "用户不存在", err)
+			}
+			return "", "", types.NewAppError(http.StatusUnauthorized, "用户或刷新令牌不存在", err)
+		} else if errors.Is(err, types.InvaildTokenError) {
+			return "", "", types.NewAppError(http.StatusUnauthorized, "刷新令牌无效或已过期", err)
+		}
 	}
 
 	if err := s.DB.DeleteRefreshToken(uid, refreshToken); err != nil {
-		return "", "", fmt.Errorf("删除刷新令牌失败: %w", err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return "", "", types.NewAppError(http.StatusUnauthorized, "刷新令牌或用户不存在", err)
+		} else {
+			return "", "", types.NewAppError(http.StatusInternalServerError, "数据库错误", err)
+		}
 	}
 
 	newRefreshToken, err := s.GenerateRefreshToken(uid)
+	if err != nil {
+		return "", "", err
+	}
 	var newAccessToken string
 	switch role {
 	case "admin":
 		newAccessToken, err = s.GenerateAdminAccessToken(uid)
 		if err != nil {
-			return "", "", fmt.Errorf("生成管理员访问令牌失败: %w", err)
+			return "", "", err
 		}
 	case "user":
 		newAccessToken, err = s.GenerateUserAccessToken(uid)
 		if err != nil {
-			return "", "", fmt.Errorf("生成用户访问令牌失败: %w", err)
+			return "", "", err
 		}
 	default:
-		return "", "", fmt.Errorf("未知的用户角色: %s", role)
+		return "", "", types.NewAppError(http.StatusUnauthorized, "未知的用户角色", nil)
 	}
 	return newAccessToken, newRefreshToken, nil
-
 }
 
 func (s *AuthService) GenerateRefreshToken(uid uint) (string, error) {
 	token, err := utils.GenerateRefreshToken(s.Cfg.RefreshTokenLength)
 	if err != nil {
-		return "", fmt.Errorf("生成刷新令牌失败: %w", err)
+		return "", types.NewAppError(http.StatusInternalServerError, "生成刷新令牌失败", err)
 	}
 
 	now := time.Now()
 	expiredAt := now.Add(time.Duration(s.Cfg.RefreshTokenExpire) * time.Second)
 	if err := s.DB.StoreRefreshToken(uid, token, expiredAt); err != nil {
-		return "", fmt.Errorf("存储刷新令牌失败: %w", err)
+		return "", types.NewAppError(http.StatusInternalServerError, "存储刷新令牌失败", err)
 	}
 	return token, nil
 }
@@ -130,7 +163,7 @@ func (s *AuthService) GenerateRefreshToken(uid uint) (string, error) {
 func (s *AuthService) GenerateUserAccessToken(uid uint) (string, error) {
 	token, err := utils.GenerateUserAccessToken(uid, s.Cfg.AccessTokenExpire, s.Cfg.Secret)
 	if err != nil {
-		return "", fmt.Errorf("生成访问令牌失败: %w", err)
+		return "", types.NewAppError(http.StatusInternalServerError, "生成访问令牌失败", err)
 	}
 	return token, nil
 }
@@ -138,7 +171,7 @@ func (s *AuthService) GenerateUserAccessToken(uid uint) (string, error) {
 func (s *AuthService) GenerateAdminAccessToken(uid uint) (string, error) {
 	token, err := utils.GenerateAdminAccessToken(uid, s.Cfg.AccessTokenExpire, s.Cfg.Secret)
 	if err != nil {
-		return "", fmt.Errorf("生成访问令牌失败: %w", err)
+		return "", types.NewAppError(http.StatusInternalServerError, "生成访问令牌失败", err)
 	}
 	return token, nil
 }

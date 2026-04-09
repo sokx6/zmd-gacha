@@ -26,9 +26,7 @@ func (h *UserHandler) UpdateProfile(c echo.Context) error {
 	}
 
 	if err := h.Service.UpdateProfile(req.User); err != nil {
-		return c.JSON(http.StatusInternalServerError, types.ProfileUpdateRsp{
-			Message: "更新失败",
-		})
+		return err
 	}
 
 	return c.JSON(http.StatusOK, types.ProfileUpdateRsp{
@@ -42,9 +40,7 @@ func (h *UserHandler) GetUserCharacters(c echo.Context) error {
 
 	characters, err := h.Service.GetUserCharacters(uid)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, types.CharsGetRsp{
-			Message: "获取角色列表失败",
-		})
+		return err
 	}
 
 	return c.JSON(http.StatusOK, types.CharsGetRsp{
@@ -64,9 +60,7 @@ func (h *UserHandler) GetCharFirstInfo(c echo.Context) error {
 		charId := uint(u64)
 		firstAcquiredAt, firstAcquiredPool, firstAcquiredPullCount, err := h.Service.GetCharFirstInfo(uid, charId)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, types.CharFirstInfoRsp{
-				Message: "获取角色首次信息失败",
-			})
+			return err
 		}
 		return c.JSON(http.StatusOK, types.CharFirstInfoRsp{
 			Message:                "获取角色首次信息成功",

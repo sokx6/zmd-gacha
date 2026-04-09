@@ -68,34 +68,31 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		})
 	}
 
-	isValid, uid, role, err := h.Service.Login(req)
+	_, uid, role, err := h.Service.Login(req.Username, req.Password, req.UID, req.Email)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, types.UserLoginRsp{
-			Message: fmt.Sprintf("登录失败: %s", err.Error()), //todo 状态码不合适
-		})
-	} else if !isValid {
-		return c.JSON(http.StatusUnauthorized, types.UserLoginRsp{
-			Message: "用户名或密码错误",
-		})
+		return err
 	}
 
 	refreshToken, err := h.Service.GenerateRefreshToken(uid)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, types.UserLoginRsp{
-			Message: "生成刷新令牌失败",
-		})
+		return err
 	}
+
 	var accessToken string
 	switch role {
 	case "admin":
 		accessToken, err = h.Service.GenerateAdminAccessToken(uid)
+		if err != nil {
+			return err
+		}
 	default:
 		accessToken, err = h.Service.GenerateUserAccessToken(uid)
+		if err != nil {
+			return err
+		}
 	}
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, types.UserLoginRsp{
-			Message: "生成访问令牌失败",
-		})
+		return err
 	}
 	return c.JSON(http.StatusOK, types.UserLoginRsp{
 		Message:      "登录成功",
@@ -119,9 +116,7 @@ func (h *AuthHandler) Refresh(c echo.Context) error {
 
 	newAccessToken, newRefreshToken, err := h.Service.RefreshToken(req.UID, req.RefreshToken)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, types.TokenRefRsp{
-			Message: "刷新令牌失败",
-		})
+		return err
 	}
 
 	return c.JSON(http.StatusOK, types.TokenRefRsp{
