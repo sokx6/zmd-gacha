@@ -1,6 +1,7 @@
 package types
 
 import (
+	"time"
 	"zmd-gacha/internal/models"
 )
 
@@ -60,4 +61,10 @@ type CharsGetRsp struct {
 type PoolInfoRsp struct {
 	Pool    models.GachaPool `json:"pool"`
 	Message string           `json:"message"`
+}
+type CharFirstInfoRsp struct {
+	Message                string    `json:"message"`
+	FirstAcquiredAt        time.Time `json:"first_acquired_at,omitempty"`
+	FirstAcquiredPool      uint      `json:"first_acquired_pool,omitempty"`
+	FirstAcquiredPullCount int       `json:"first_acquired_pull_count,omitempty"`
 }
