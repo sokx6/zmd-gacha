@@ -102,3 +102,22 @@ func (h *GachaHandler) InsertCharacterToPool(c echo.Context) error {
 		Message: "插入角色成功",
 	})
 }
+
+func (h *GachaHandler) GetPoolInfo(c echo.Context) error {
+	poolId := c.QueryParam("pool_id")
+	if poolId == "" {
+		return c.JSON(400, types.ErrorRsp{Message: "缺少pool_id参数"})
+	}
+	poolIdUint, err := strconv.ParseUint(poolId, 10, 64)
+	if err != nil {
+		return c.JSON(400, types.ErrorRsp{Message: "pool_id参数无效"})
+	}
+	poolInfo, err := h.Service.GetPoolInfo(uint(poolIdUint))
+	if err != nil {
+		return c.JSON(500, types.ErrorRsp{Message: "获取卡池信息失败"})
+	}
+	return c.JSON(http.StatusOK, types.PoolInfoRsp{
+		Pool:    poolInfo,
+		Message: "获取卡池信息成功",
+	})
+}

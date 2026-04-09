@@ -46,3 +46,7 @@ func (gs *GachaService) CreatePool(pool models.GachaPool, config models.GachaPoo
 func (gs *GachaService) InsertCharacterToPool(poolId uint, characterId uint) error {
 	return gs.DB.InsertCharacterToPool(poolId, characterId)
 }
+
+func (gs *GachaService) GetPoolInfo(poolId uint) (models.GachaPool, error) {
+	return gs.DB.GetPoolInfo(poolId)
+}

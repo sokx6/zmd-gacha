@@ -56,3 +56,8 @@ type CharsGetRsp struct {
 	Characters []models.UserCharacter `json:"characters"`
 	Message    string                 `json:"message"`
 }
+
+type PoolInfoRsp struct {
+	Pool    models.GachaPool `json:"pool"`
+	Message string           `json:"message"`
+}

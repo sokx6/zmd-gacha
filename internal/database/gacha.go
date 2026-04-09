@@ -203,3 +203,11 @@ func (db *Database) updateUserPity(tx *gorm.DB, uid uint, characters []models.Ch
 	}
 	return nil
 }
+
+func (db *Database) GetPoolInfo(poolId uint) (models.GachaPool, error) {
+	var pool models.GachaPool
+	if err := db.DB.Preload("Config").Preload("Characters").First(&pool, poolId).Error; err != nil {
+		return models.GachaPool{}, err
+	}
+	return pool, nil
+}
