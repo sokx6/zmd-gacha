@@ -73,6 +73,10 @@ func ValidateAccessToken(key string, tokenStr string) (uint, string, error) {
 }
 
 func GenerateRefreshToken(length int) (string, error) {
+	return GenerateRandomString(length)
+}
+
+func GenerateRandomString(length int) (string, error) {
 	b := make([]byte, length)
 	_, err := rand.Read(b)
 	if err != nil {
@@ -80,4 +84,8 @@ func GenerateRefreshToken(length int) (string, error) {
 	}
 
 	return base64.StdEncoding.EncodeToString(b)[:length], nil
+}
+
+func GenerateTraceID(length int) (string, error) {
+	return GenerateRandomString(length)
 }
