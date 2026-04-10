@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 	"strconv"
-	"zmd-gacha/internal/service"
+	"zmd-gacha/internal/management/service"
 	"zmd-gacha/internal/types"
 
 	"github.com/labstack/echo/v4"

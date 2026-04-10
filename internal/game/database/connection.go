@@ -3,7 +3,7 @@ package database
 import (
 	"fmt"
 	"sync"
-	"zmd-gacha/internal/config"
+	"zmd-gacha/internal/game/config"
 	"zmd-gacha/internal/models"
 
 	"github.com/glebarez/sqlite"
@@ -20,7 +20,7 @@ type Database struct {
 
 var defaultDB *Database
 
-func NweDatabase(Cfg config.DataBaseConfig) *Database {
+func NewDatabase(Cfg config.DataBaseConfig) *Database {
 	return &Database{
 		Cfg:  &Cfg,
 		UIDs: sync.Map{},
@@ -28,7 +28,7 @@ func NweDatabase(Cfg config.DataBaseConfig) *Database {
 }
 
 func Init(cfg config.DataBaseConfig) error {
-	db := NweDatabase(cfg)
+	db := NewDatabase(cfg)
 	if err := db.InitDB(); err != nil {
 		return err
 	}

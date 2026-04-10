@@ -1,28 +1,26 @@
-package api
+package main
 
 import (
-	"zmd-gacha/internal/handler"
-	"zmd-gacha/internal/middleware"
+	"zmd-gacha/internal/management/handler"
+	"zmd-gacha/internal/management/middleware"
 
 	"github.com/labstack/echo/v4"
 )
 
 func RegisterRoutes(e *echo.Echo, authHandler *handler.AuthHandler, userHandler *handler.UserHandler, authMiddleware *middleware.AuthMiddleware, gachaHandler *handler.GachaHandler) {
-	auth := e.Group("/api/auth")
-	auth.GET("/ping", handler.Ping)
-	auth.POST("/register", authHandler.Register)
-	auth.POST("/login", authHandler.Login)
-	auth.POST("/refresh", authHandler.Refresh)
-
+	e.GET("/ping", handler.Ping)
 	api := e.Group("/api")
-	api.Use(authMiddleware.Jwt)
+
+	// 公开接口
+	api.POST("/register", authHandler.Register)
+	api.POST("/login", authHandler.Login)
+	api.POST("/refresh", authHandler.Refresh)
 
 	// 普通登录用户可访问
-	api.PUT("/user/me", userHandler.UpdateProfile)
-	api.GET("/pull", gachaHandler.Pull)
-	api.GET("/characters", userHandler.GetUserCharacters)
-	api.GET("/pool", gachaHandler.GetPoolInfo)
-	api.GET("/character/first_info", userHandler.GetCharFirstInfo)
+	auth := api.Group("/auth")
+	auth.Use(authMiddleware.Jwt)
+	auth.PUT("/user/me", userHandler.UpdateProfile)
+
 	// 仅管理员可访问
 	admin := api.Group("/admin")
 	admin.Use(authMiddleware.AdminJwt)

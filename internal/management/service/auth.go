@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"zmd-gacha/internal/config"
-	"zmd-gacha/internal/database"
+	"zmd-gacha/internal/management/config"
+	"zmd-gacha/internal/management/database"
 	"zmd-gacha/internal/types"
 	"zmd-gacha/internal/utils"
 

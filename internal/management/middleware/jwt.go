@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"net/http"
-	"zmd-gacha/internal/service"
+	"zmd-gacha/internal/management/service"
 	"zmd-gacha/internal/utils"
 
 	"github.com/labstack/echo/v4"

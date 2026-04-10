@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"time"
-	"zmd-gacha/internal/database"
+	"zmd-gacha/internal/game/database"
 	"zmd-gacha/internal/models"
 	"zmd-gacha/internal/types"
 
@@ -17,22 +17,6 @@ type UserService struct {
 
 func NewUserService(db *database.Database) *UserService {
 	return &UserService{DB: db}
-}
-
-func (s *UserService) UpdateProfile(uid uint, nickname, profile string) error {
-	user := models.User{
-		UID:      uid,
-		Nickname: nickname,
-		Profile:  profile,
-	}
-	if err := s.DB.UpdateProfile(user); err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return types.NewAppError(http.StatusNotFound, "未找到对应的用户", err)
-		} else {
-			return types.NewAppError(http.StatusInternalServerError, "更新用户信息数据库错误", err)
-		}
-	}
-	return nil
 }
 
 func (s *UserService) GetUserCharacters(uid uint) ([]models.UserCharacter, error) {

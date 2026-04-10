@@ -8,7 +8,8 @@
 *.so
 *.dylib
 cmd/cmd
-
+cmd/game/game
+cmd/management/management
 # Test binary, built with `go test -c`
 *.test
 
