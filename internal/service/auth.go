@@ -43,9 +43,9 @@ func (s *AuthService) Register(username string, password string, email string) (
 	switch role {
 	case "user":
 		uid = utils.GenerateUID()
-		for ; db.UIDs[uid]; uid = utils.GenerateUID() {
+		for userId, ok := db.UIDs.Load(uid); ok && uid != userId; uid = utils.GenerateUID() {
 		}
-		db.UIDs[uid] = true
+		db.UIDs.Store(uid, true)
 	case "admin":
 		uid = 1000000000
 	}
@@ -75,6 +75,9 @@ func (s *AuthService) Login(username string, password string, uid uint, email st
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, 0, "", types.NewAppError(http.StatusUnauthorized, "用户不存在", err)
 		} else {
+			if err.Error() == "密码错误" {
+				return false, 0, "", types.NewAppError(http.StatusUnauthorized, "密码错误", err)
+			}
 			return false, 0, "", types.NewAppError(http.StatusInternalServerError, "数据库错误", err)
 		}
 	}
