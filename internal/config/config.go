@@ -9,7 +9,6 @@ import (
 // 配置文件模型
 type Config struct {
 	App      AppConfig
-	Gacha    GachaConfig
 	Database DataBaseConfig
 	Auth     AuthConfig
 }
@@ -18,13 +17,6 @@ type Config struct {
 type AppConfig struct {
 	Host string `toml:"host"`
 	Port uint16 `toml:"port"`
-}
-
-// 抽卡概率配置
-type GachaConfig struct {
-	SProb float64 `toml:"s_prob"`
-	AProb float64 `toml:"a_prob"`
-	BProb float64 `toml:"b_prob"`
 }
 
 // 数据库配置
