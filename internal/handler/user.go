@@ -24,8 +24,13 @@ func (h *UserHandler) UpdateProfile(c echo.Context) error {
 			Message: "不合法请求",
 		})
 	}
-
-	if err := h.Service.UpdateProfile(req.User); err != nil {
+	uid, ok := c.Get("uid").(uint)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, types.ProfileUpdateRsp{
+			Message: "未授权",
+		})
+	}
+	if err := h.Service.UpdateProfile(uid, req.Nickname, req.Profile); err != nil {
 		return err
 	}
 

@@ -23,7 +23,8 @@ type TokenRefReq struct {
 }
 
 type ProfileUpdateReq struct {
-	User models.User `json:"user"`
+	Nickname string `json:"nickname"`
+	Profile  string `json:"profile"`
 }
 
 type GachaPullReq struct {

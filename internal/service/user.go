@@ -19,7 +19,12 @@ func NewUserService(db *database.Database) *UserService {
 	return &UserService{DB: db}
 }
 
-func (s *UserService) UpdateProfile(user models.User) error {
+func (s *UserService) UpdateProfile(uid uint, nickname, profile string) error {
+	user := models.User{
+		UID:      uid,
+		Nickname: nickname,
+		Profile:  profile,
+	}
 	if err := s.DB.UpdateProfile(user); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return types.NewAppError(http.StatusNotFound, "未找到对应的用户", err)
