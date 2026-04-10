@@ -10,5 +10,5 @@ type User struct {
 	Role           string          `gorm:"not null;default:user;size:20;index"`
 	UserCharacters []UserCharacter `gorm:"foreignKey:UserID;references:UID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	GachaRecords   []GachaRecord   `gorm:"foreignKey:UserID;references:UID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	UserPools      []UserPool      `gorm:"foreignKey:UID;references:UID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	UserPools      []UserPool      `gorm:"foreignKey:UserID;references:UID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
