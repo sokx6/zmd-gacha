@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"sync"
 	"zmd-gacha/internal/config"
 	"zmd-gacha/internal/models"
 
@@ -14,7 +15,7 @@ import (
 type Database struct {
 	DB   *gorm.DB
 	Cfg  *config.DataBaseConfig
-	UIDs map[uint]bool
+	UIDs sync.Map
 }
 
 var defaultDB *Database
@@ -22,7 +23,7 @@ var defaultDB *Database
 func NweDatabase(Cfg config.DataBaseConfig) *Database {
 	return &Database{
 		Cfg:  &Cfg,
-		UIDs: make(map[uint]bool),
+		UIDs: sync.Map{},
 	}
 }
 
@@ -75,7 +76,7 @@ func (database *Database) InitDB() error {
 	var uids []uint
 	database.DB.Model(&models.User{}).Pluck("uid", &uids)
 	for _, uid := range uids {
-		database.UIDs[uid] = true
+		database.UIDs.Store(uid, true)
 	}
 
 	return nil
