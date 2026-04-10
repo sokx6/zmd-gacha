@@ -10,9 +10,5 @@ type User struct {
 	Role           string          `gorm:"not null;default:user;size:20;index"`
 	UserCharacters []UserCharacter `gorm:"foreignKey:UserID;references:UID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	GachaRecords   []GachaRecord   `gorm:"foreignKey:UserID;references:UID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	PullCount      int             `gorm:"not null;default:0"`
-	LastACount     int             `gorm:"not null;default:0"`
-	LastSCount     int             `gorm:"not null;default:0"`
-	LastSUp        bool            `gorm:"not null;default:false"`
-	LastUpCount    int             `gorm:"not null;default:0"`
+	UserPools      []UserPool      `gorm:"foreignKey:UID;references:UID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }

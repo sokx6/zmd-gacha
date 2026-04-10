@@ -6,7 +6,7 @@ import (
 	"zmd-gacha/internal/models"
 )
 
-func Pull(config models.GachaPoolConfig, characters []models.Character, user models.User) models.Character {
+func Pull(config models.GachaPoolConfig, characters []models.Character, user models.UserPool) models.Character {
 	sNoUpCharacters := getSNoUpCharacters(characters)
 	sUpCharacters := getSUpCharacters(characters)
 	aCharacters := getACharacters(characters)
@@ -62,7 +62,7 @@ func Pull(config models.GachaPoolConfig, characters []models.Character, user mod
 	return randomCharacter(bCharacters)
 }
 
-func PullTen(config models.GachaPoolConfig, characters []models.Character, user models.User) []models.Character {
+func PullTen(config models.GachaPoolConfig, characters []models.Character, user models.UserPool) []models.Character {
 	var results []models.Character
 	for i := 0; i < 10; i++ {
 		result := Pull(config, characters, user)

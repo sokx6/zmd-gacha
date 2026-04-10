@@ -11,6 +11,7 @@ type GachaPool struct {
 	Characters          []Character          `gorm:"many2many:gacha_pool_characters;joinForeignKey:PoolID;joinReferences:CharacterID"`
 	StartAt             *time.Time           `gorm:"index" json:"start_at"`
 	EndAt               *time.Time           `gorm:"index" json:"end_at"`
+	UserPools           []UserPool           `gorm:"foreignKey:PoolID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	IsActive            bool                 `gorm:"not null;default:true;index" json:"is_active"`
 }
 
@@ -61,4 +62,17 @@ type UserCharacter struct {
 	FirstAcquiredAt        time.Time `gorm:"not null"`
 	FirstAcquiredPool      uint      `gorm:"not null"`
 	FirstAcquiredPullCount int       `gorm:"not null"`
+}
+
+type UserPool struct {
+	ID          int       `gorm:"primarykey"`
+	UserID      uint      `gorm:"not null;index:idx_user_pool,unique"`
+	PoolID      uint      `gorm:"not null;index:idx_user_pool,unique"`
+	PullCount   int       `gorm:"not null;default:0"`
+	LastACount  int       `gorm:"not null;default:0"`
+	LastSCount  int       `gorm:"not null;default:0"`
+	LastSUp     bool      `gorm:"not null;default:false"`
+	LastUpCount int       `gorm:"not null;default:0"`
+	User        User      `gorm:"foreignKey:UserID;references:UID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Pool        GachaPool `gorm:"foreignKey:PoolID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
