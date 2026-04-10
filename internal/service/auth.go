@@ -113,6 +113,8 @@ func (s *AuthService) RefreshToken(uid uint, refreshToken string) (string, strin
 			return "", "", types.NewAppError(http.StatusUnauthorized, "用户或刷新令牌不存在", err)
 		} else if errors.Is(err, types.InvaildTokenError) {
 			return "", "", types.NewAppError(http.StatusUnauthorized, "刷新令牌无效或已过期", err)
+		} else {
+			return "", "", types.NewAppError(http.StatusInternalServerError, "数据库错误", err)
 		}
 	}
 
