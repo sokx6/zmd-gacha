@@ -43,15 +43,6 @@ func (db *Database) CreatePool(pool models.GachaPool, config models.GachaPoolCon
 	return gachaPool.ID, tx.Commit().Error
 }
 
-// 查询对应池子里的所有角色
-func (db *Database) GetCharacters(poolId uint) ([]models.Character, error) {
-	var characters []models.Character
-	if err := db.DB.Model(&models.GachaPool{ID: poolId}).Association("Characters").Find(&characters); err != nil {
-		return nil, err
-	}
-	return characters, nil
-}
-
 // 创建角色
 func (db *Database) CreateCharacter(name string, rank string, isLimited bool, isUp bool) (models.Character, error) {
 	character := models.Character{

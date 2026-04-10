@@ -8,41 +8,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// 查询当前所有卡池
-func (db *Database) GetPools() ([]models.GachaPool, error) {
-	var pools []models.GachaPool
-	if err := db.DB.Preload("Config").Preload("GachaPoolCharacters").Preload("GachaPoolCharacters.Character").Find(&pools).Error; err != nil {
-		return nil, err
-	}
-	return pools, nil
-}
-
-// 查询对应卡池的配置
-func (db *Database) GetPoolCfg(poolId uint) (*models.GachaPoolConfig, error) {
-	var cfg models.GachaPoolConfig
-	if err := db.DB.Where("pool_id = ?", poolId).First(&cfg).Error; err != nil {
-		return nil, err
-	}
-	return &cfg, nil
-}
-
-// 查询用户和要抽的卡池配置
-func (db *Database) GetPullCfg(poolId, uid uint) (models.GachaPoolConfig, models.User, error) {
-	var cfg models.GachaPoolConfig
-	var user models.User
-	tx := db.DB.Begin()
-	if err := tx.Where("pool_id = ?", poolId).First(&cfg).Error; err != nil {
-		tx.Rollback()
-		return models.GachaPoolConfig{}, models.User{}, err
-	}
-	if err := tx.Where("uid = ?", uid).First(&user).Error; err != nil {
-		tx.Rollback()
-		return models.GachaPoolConfig{}, models.User{}, err
-	}
-	tx.Commit()
-	return cfg, user, nil
-}
-
 func (db *Database) getPullCfg(tx *gorm.DB, poolId, uid uint) (models.GachaPoolConfig, models.UserPool, error) {
 	var cfg models.GachaPoolConfig
 	var user models.UserPool

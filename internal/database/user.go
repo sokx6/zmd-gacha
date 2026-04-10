@@ -53,15 +53,6 @@ func (db *Database) UpdateProfile(user models.User) error {
 	return nil
 }
 
-// 获取对应用户的所有插卡记录
-func (db *Database) GetGachaRecords(uid uint) ([]models.GachaRecord, error) {
-	var records []models.GachaRecord
-	if err := db.DB.Where("uid = ?", uid).Find(&records).Error; err != nil {
-		return nil, err
-	}
-	return records, nil
-}
-
 // 获取对应用户信息
 func (db *Database) GetUserByUID(uid uint) (*models.User, error) {
 	var user models.User
