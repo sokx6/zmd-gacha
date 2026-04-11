@@ -7,7 +7,8 @@ import (
 )
 
 func Ping(c echo.Context) error {
-	return c.JSON(http.StatusOK, map[string]string{
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"code":    http.StatusOK,
 		"message": "pong",
 	})
 }

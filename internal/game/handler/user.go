@@ -26,6 +26,7 @@ func (h *UserHandler) GetUserCharacters(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, types.CharsGetRsp{
+		Code:       http.StatusOK,
 		Message:    "获取角色列表成功",
 		Characters: characters,
 	})
@@ -45,6 +46,7 @@ func (h *UserHandler) GetCharFirstInfo(c echo.Context) error {
 			return err
 		}
 		return c.JSON(http.StatusOK, types.CharFirstInfoRsp{
+			Code:                   http.StatusOK,
 			Message:                "获取角色首次信息成功",
 			FirstAcquiredAt:        firstAcquiredAt,
 			FirstAcquiredPool:      firstAcquiredPool,

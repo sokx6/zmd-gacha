@@ -47,6 +47,7 @@ func (h *AuthHandler) Register(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, types.UserRstRsp{
+		Code:    http.StatusOK,
 		Message: "注册成功",
 		UID:     uid,
 	})
@@ -92,6 +93,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		return err
 	}
 	return c.JSON(http.StatusOK, types.UserLoginRsp{
+		Code:         http.StatusOK,
 		Message:      "登录成功",
 		RefreshToken: refreshToken,
 		AccessToken:  accessToken,
@@ -117,6 +119,7 @@ func (h *AuthHandler) Refresh(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, types.TokenRefRsp{
+		Code:         http.StatusOK,
 		Message:      "刷新成功",
 		AccessToken:  newAccessToken,
 		RefreshToken: newRefreshToken,

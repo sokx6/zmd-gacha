@@ -30,6 +30,7 @@ func (h *GachaHandler) CreateCharacter(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, types.CharCreateRsp{
 		Character: character,
+		Code:      http.StatusOK,
 		Message:   "创建角色成功",
 	})
 }
@@ -44,6 +45,7 @@ func (h *GachaHandler) CreatePool(c echo.Context) error {
 		return err
 	}
 	return c.JSON(http.StatusOK, types.PoolCreateRsp{
+		Code:    http.StatusOK,
 		PoolID:  poolId,
 		Message: "创建卡池成功",
 	})
@@ -59,6 +61,7 @@ func (h *GachaHandler) InsertCharacterToPool(c echo.Context) error {
 		return err
 	}
 	return c.JSON(http.StatusOK, types.InsertCharRsp{
+		Code:    http.StatusOK,
 		Message: "插入角色成功",
 	})
 }
@@ -95,6 +98,7 @@ func (h *GachaHandler) UpdatePoolConfig(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, types.PoolConfigUpdateRsp{
+		Code:    http.StatusOK,
 		PoolID:  req.PoolID,
 		Version: version,
 		Message: "更新卡池配置成功",

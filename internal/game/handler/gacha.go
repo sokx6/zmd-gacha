@@ -41,6 +41,7 @@ func (h *GachaHandler) Pull(c echo.Context) error {
 		}
 		return c.JSON(http.StatusOK, types.PullOnceRsp{
 			Character: result,
+			Code:      http.StatusOK,
 			Message:   "抽卡成功",
 		})
 	case "10":
@@ -50,6 +51,7 @@ func (h *GachaHandler) Pull(c echo.Context) error {
 		}
 		return c.JSON(http.StatusOK, types.PullTenRsp{
 			Characters: results,
+			Code:       http.StatusOK,
 			Message:    "抽卡成功",
 		})
 	default:
@@ -72,6 +74,7 @@ func (h *GachaHandler) GetPoolInfo(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, types.PoolInfoRsp{
 		Pool:    poolInfo,
+		Code:    http.StatusOK,
 		Message: "获取卡池信息成功",
 	})
 }
