@@ -141,3 +141,11 @@ func (gs *GachaService) GetPoolInfo(poolId uint) (models.GachaPool, error) {
 	}
 	return pool, nil
 }
+
+func (gs *GachaService) GetPoolIds() ([]uint, error) {
+	poolIds, err := gs.DB.GetPoolIds()
+	if err != nil {
+		return nil, types.NewAppError(http.StatusInternalServerError, "查询卡池ID数据库错误", err)
+	}
+	return poolIds, nil
+}

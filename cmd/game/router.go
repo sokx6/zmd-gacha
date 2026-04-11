@@ -17,5 +17,6 @@ func RegisterRoutes(e *echo.Echo, userHandler *handler.UserHandler, authMiddlewa
 	api.GET("/characters", userHandler.GetUserCharacters)
 	api.GET("/pool", gachaHandler.GetPoolInfo)
 	api.GET("/character/first_info", userHandler.GetCharFirstInfo)
+	api.GET("/pools", gachaHandler.GetPoolIds)
 
 }

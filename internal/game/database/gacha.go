@@ -190,3 +190,11 @@ func (db *Database) GetPoolConfigs() ([]models.GachaPoolConfig, error) {
 	}
 	return configs, nil
 }
+
+func (db *Database) GetPoolIds() ([]uint, error) {
+	var poolIds []uint
+	if err := db.DB.Model(&models.GachaPool{}).Pluck("id", &poolIds).Error; err != nil {
+		return nil, err
+	}
+	return poolIds, nil
+}

@@ -71,6 +71,7 @@ func (database *Database) InitDB() error {
 		&models.GachaRecord{},
 		&models.UserCharacter{},
 		&models.RefreshToken{},
+		&models.UserPool{},
 	)
 
 	var uids []uint

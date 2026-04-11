@@ -72,9 +72,17 @@ func (h *GachaHandler) GetPoolInfo(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	return c.JSON(http.StatusOK, types.PoolInfoRsp{
-		Pool:    poolInfo,
+	return c.JSON(http.StatusOK, types.NewPoolInfoRsp(poolInfo, http.StatusOK, "获取卡池信息成功"))
+}
+
+func (h *GachaHandler) GetPoolIds(c echo.Context) error {
+	poolIds, err := h.Service.GetPoolIds()
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, types.PoolIdsRsp{
+		PoolIds: poolIds,
 		Code:    http.StatusOK,
-		Message: "获取卡池信息成功",
+		Message: "获取卡池ID列表成功",
 	})
 }
