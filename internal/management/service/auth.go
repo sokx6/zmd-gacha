@@ -23,10 +23,10 @@ func NewAuthService(db *database.Database, cfg config.AuthConfig) *AuthService {
 }
 
 // 用户注册函数，返回UID和错误
-func (s *AuthService) Register(username string, password string, email string) (uint, error) {
+func (s *AuthService) Register(username string, password string, email string) (uint, string, error) {
 	hashed_pwd, err := utils.HashPWD(password)
 	if err != nil {
-		return 0, types.NewAppError(http.StatusInternalServerError, "密码服务错误", err)
+		return 0, "", types.NewAppError(http.StatusInternalServerError, "密码服务错误", err)
 	}
 
 	var role string
@@ -52,12 +52,12 @@ func (s *AuthService) Register(username string, password string, email string) (
 
 	if err = db.RegisterUser(username, hashed_pwd, email, role, uid); err != nil {
 		if errors.Is(gorm.ErrDuplicatedKey, err) {
-			return 0, types.NewAppError(http.StatusConflict, "用户已存在", err)
+			return 0, "", types.NewAppError(http.StatusConflict, "用户已存在", err)
 		} else {
-			return 0, types.NewAppError(http.StatusInternalServerError, "数据库错误", err)
+			return 0, "", types.NewAppError(http.StatusInternalServerError, "数据库错误", err)
 		}
 	}
-	return uid, nil
+	return uid, role, nil
 }
 
 // 用户登录服务，返回是否登录成功、用户UID、角色和错误

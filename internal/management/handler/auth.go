@@ -42,7 +42,8 @@ func (h *AuthHandler) Register(c echo.Context) error {
 	// 注册用户并生成UID
 	var err error
 	var uid uint
-	if uid, err = h.Service.Register(req.Username, req.Password, req.Email); err != nil {
+	var role string
+	if uid, role, err = h.Service.Register(req.Username, req.Password, req.Email); err != nil {
 		return err
 	}
 
@@ -50,6 +51,7 @@ func (h *AuthHandler) Register(c echo.Context) error {
 		Code:    http.StatusOK,
 		Message: "注册成功",
 		UID:     uid,
+		Role:    role,
 	})
 }
 

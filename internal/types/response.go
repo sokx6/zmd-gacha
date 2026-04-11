@@ -9,6 +9,7 @@ type UserRstRsp struct {
 	Code    int    `json:"code,omitempty"`
 	UID     uint   `json:"uid"`
 	Message string `json:"message"`
+	Role    string `json:"role"`
 }
 
 type UserLoginRsp struct {
