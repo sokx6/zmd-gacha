@@ -1,7 +1,10 @@
 package database
 
 import (
+	"errors"
 	"zmd-gacha/internal/models"
+
+	"gorm.io/gorm"
 )
 
 func (db *Database) GetUserCharacters(uid uint) ([]models.UserCharacter, error) {
@@ -23,6 +26,16 @@ func (db *Database) GetCharFirstInfo(uid uint, characterId uint) (*models.UserCh
 func (db *Database) GetUserPool(uid, poolId uint) (models.UserPool, error) {
 	var userPool models.UserPool
 	if err := db.DB.Where("user_id = ? AND pool_id = ?", uid, poolId).First(&userPool).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			userPool = models.UserPool{
+				UserID: uid,
+				PoolID: poolId,
+			}
+			if createErr := db.DB.Create(&userPool).Error; createErr != nil {
+				return models.UserPool{}, createErr
+			}
+			return userPool, nil
+		}
 		return models.UserPool{}, err
 	}
 	return userPool, nil
