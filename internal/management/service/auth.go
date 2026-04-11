@@ -23,7 +23,7 @@ func NewAuthService(db *database.Database, cfg config.AuthConfig) *AuthService {
 }
 
 // 用户注册函数，返回UID和错误
-func (s *AuthService) Register(username string, password string, email string) (uint, string, error) {
+func (s *AuthService) Register(username, password, email, nickname, profile string) (uint, string, error) {
 	hashed_pwd, err := utils.HashPWD(password)
 	if err != nil {
 		return 0, "", types.NewAppError(http.StatusInternalServerError, "密码服务错误", err)
@@ -50,7 +50,7 @@ func (s *AuthService) Register(username string, password string, email string) (
 		uid = 1000000000
 	}
 
-	if err = db.RegisterUser(username, hashed_pwd, email, role, uid); err != nil {
+	if err = db.RegisterUser(username, hashed_pwd, email, role, nickname, profile, uid); err != nil {
 		if errors.Is(gorm.ErrDuplicatedKey, err) {
 			return 0, "", types.NewAppError(http.StatusConflict, "用户已存在", err)
 		} else {
@@ -61,7 +61,7 @@ func (s *AuthService) Register(username string, password string, email string) (
 }
 
 // 用户登录服务，返回是否登录成功、用户UID、角色和错误
-func (s *AuthService) Login(username string, password string, uid uint, email string) (bool, uint, string, error) {
+func (s *AuthService) Login(username, password string, uid uint, email string) (bool, uint, string, error) {
 	db := s.DB
 	if db == nil {
 		var err error

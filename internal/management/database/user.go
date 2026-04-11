@@ -6,12 +6,14 @@ import (
 	"zmd-gacha/internal/utils"
 )
 
-func (db *Database) RegisterUser(username string, password string, email string, role string, uid uint) error {
+func (db *Database) RegisterUser(username, password, email, role, nickname, profile string, uid uint) error {
 	user := models.User{
 		Username: username,
 		Password: password,
 		Email:    email,
 		Role:     role,
+		Nickname: nickname,
+		Profile:  profile,
 		UID:      uid,
 	}
 

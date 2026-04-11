@@ -43,7 +43,7 @@ func (h *AuthHandler) Register(c echo.Context) error {
 	var err error
 	var uid uint
 	var role string
-	if uid, role, err = h.Service.Register(req.Username, req.Password, req.Email); err != nil {
+	if uid, role, err = h.Service.Register(req.Username, req.Password, req.Email, req.Nickname, req.Profile); err != nil {
 		return err
 	}
 
@@ -62,9 +62,9 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, types.UserLoginRsp{
 			Message: "不合法请求",
 		})
-	} else if req.Username == "" || req.Password == "" {
+	} else if req.Username == "" || req.Password == "" || req.UID == 0 || req.Email == "" {
 		return c.JSON(http.StatusBadRequest, types.UserLoginRsp{
-			Message: "用户名或密码不能为空",
+			Message: "用户名或uid或邮箱密码不能为空",
 		})
 	}
 
