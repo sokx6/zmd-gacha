@@ -23,6 +23,7 @@ func RegisterRoutes(e *echo.Echo, authHandler *handler.AuthHandler, userHandler 
 
 	// 仅管理员可访问
 	admin := api.Group("/admin")
+	admin.Use(authMiddleware.Jwt)
 	admin.Use(authMiddleware.AdminJwt)
 	admin.POST("/characters", gachaHandler.CreateCharacter)
 	admin.POST("/pools", gachaHandler.CreatePool)
