@@ -2,32 +2,67 @@ package utils
 
 import (
 	"crypto/rand"
+	"crypto/rsa"
 	"encoding/base64"
 	"errors"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func generateJWT(uid uint, expireTime int, secret, role string) (string, error) {
+func loadPrivateKey(path string) (*rsa.PrivateKey, error) {
+	secretKeyPem, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(secretKeyPem)
+	if err != nil {
+		return nil, err
+	}
+	return privateKey, nil
+}
+
+func loadPublicKey(path string) (*rsa.PublicKey, error) {
+	publicKeyPem, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	publicKey, err := jwt.ParseRSAPublicKeyFromPEM(publicKeyPem)
+	if err != nil {
+		return nil, err
+	}
+	return publicKey, nil
+}
+
+func generateJWT(uid uint, expireTime int, secretKeyPath, role string) (string, error) {
+	privateKey, err := loadPrivateKey(secretKeyPath)
+	if err != nil {
+		return "", errors.New("无法加载密钥文件: " + err.Error())
+	}
 	// 创建一个新的 JWT
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
 		"uid": uid,
 		"exp": time.Now().Add(time.Duration(expireTime) * time.Second).Unix(),
 		"rol": role,
 	})
 
 	// 签名并获取完整的 token 字符串
-	return token.SignedString([]byte(secret))
+	return token.SignedString(privateKey)
 }
 
-func parseJWT(key string, jwtStr string) (uint, string, error) {
+func parseJWT(publicKeyPath string, jwtStr string) (uint, string, error) {
+	publicKey, err := loadPublicKey(publicKeyPath)
+	if err != nil {
+		return 0, "", errors.New("无法加载公钥文件: " + err.Error())
+	}
+
 	token, err := jwt.Parse(jwtStr, func(token *jwt.Token) (interface{}, error) {
-		// 检查算法是否为 HS256
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		// 检查算法是否为 RS256
+		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, errors.New("unexpected signing method")
 		}
-		return []byte(key), nil
+		return publicKey, nil
 	})
 
 	if err != nil {
@@ -60,16 +95,16 @@ func parseJWT(key string, jwtStr string) (uint, string, error) {
 	return uint(uid), role, nil
 }
 
-func GenerateUserAccessToken(uid uint, expireTime int, secret string) (string, error) {
-	return generateJWT(uid, expireTime, secret, "user")
+func GenerateUserAccessToken(uid uint, expireTime int, secretKeyPath string) (string, error) {
+	return generateJWT(uid, expireTime, secretKeyPath, "user")
 }
 
-func GenerateAdminAccessToken(uid uint, expireTime int, secret string) (string, error) {
-	return generateJWT(uid, expireTime, secret, "admin")
+func GenerateAdminAccessToken(uid uint, expireTime int, secretKeyPath string) (string, error) {
+	return generateJWT(uid, expireTime, secretKeyPath, "admin")
 }
 
-func ValidateAccessToken(key string, tokenStr string) (uint, string, error) {
-	return parseJWT(key, tokenStr)
+func ValidateAccessToken(publicKeyPath string, tokenStr string) (uint, string, error) {
+	return parseJWT(publicKeyPath, tokenStr)
 }
 
 func GenerateRefreshToken(length int) (string, error) {

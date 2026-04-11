@@ -26,7 +26,7 @@ type DataBaseConfig struct {
 }
 
 type AuthConfig struct {
-	Secret string
+	PublicKeyPath string `toml:"public_key_path"`
 }
 
 // 加载配置函数，需要指定路径

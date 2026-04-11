@@ -30,7 +30,7 @@ func (am *AuthMiddleware) Jwt(next echo.HandlerFunc) echo.HandlerFunc {
 
 		token := header[7:]
 
-		uid, role, err := utils.ValidateAccessToken(am.service.Cfg.Secret, token)
+		uid, role, err := utils.ValidateAccessToken(am.service.Cfg.PublicKeyPath, token)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusUnauthorized, "不合法的访问令牌")
 		}

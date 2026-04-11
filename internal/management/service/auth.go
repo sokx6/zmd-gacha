@@ -166,7 +166,7 @@ func (s *AuthService) GenerateRefreshToken(uid uint) (string, error) {
 }
 
 func (s *AuthService) GenerateUserAccessToken(uid uint) (string, error) {
-	token, err := utils.GenerateUserAccessToken(uid, s.Cfg.AccessTokenExpire, s.Cfg.Secret)
+	token, err := utils.GenerateUserAccessToken(uid, s.Cfg.AccessTokenExpire, s.Cfg.PrivateKeyPath)
 	if err != nil {
 		return "", types.NewAppError(http.StatusInternalServerError, "生成访问令牌失败", err)
 	}
@@ -174,7 +174,7 @@ func (s *AuthService) GenerateUserAccessToken(uid uint) (string, error) {
 }
 
 func (s *AuthService) GenerateAdminAccessToken(uid uint) (string, error) {
-	token, err := utils.GenerateAdminAccessToken(uid, s.Cfg.AccessTokenExpire, s.Cfg.Secret)
+	token, err := utils.GenerateAdminAccessToken(uid, s.Cfg.AccessTokenExpire, s.Cfg.PrivateKeyPath)
 	if err != nil {
 		return "", types.NewAppError(http.StatusInternalServerError, "生成访问令牌失败", err)
 	}
