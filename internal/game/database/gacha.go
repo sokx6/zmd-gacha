@@ -3,7 +3,6 @@ package database
 import (
 	"time"
 	"zmd-gacha/internal/models"
-	"zmd-gacha/internal/utils"
 
 	"gorm.io/gorm"
 )
@@ -32,38 +31,18 @@ func (db *Database) getPullCfg(tx *gorm.DB, poolId, uid uint) (models.GachaPoolC
 	return cfg, user, nil
 }
 
-func (db *Database) getCharacters(tx *gorm.DB, poolId uint) ([]models.Character, error) {
+func (db *Database) GetCharacters(poolId uint) ([]models.Character, error) {
 	var characters []models.Character
-	if err := tx.Model(&models.GachaPool{ID: poolId}).Association("Characters").Find(&characters); err != nil {
+	if err := db.DB.Model(&models.GachaPool{ID: poolId}).Association("Characters").Find(&characters); err != nil {
 		return nil, err
 	}
 	return characters, nil
 }
 
 // PullAndUpdate 在同一事务中完成读取配置/用户、抽卡计算和落库，避免并发下保底状态错乱。
-func (db *Database) PullAndUpdate(uid, poolId uint, pullCount int) ([]models.Character, error) {
-	var results []models.Character
+func (db *Database) UpdatePullData(uid, poolId uint, results []models.Character) error {
 
 	err := db.DB.Transaction(func(tx *gorm.DB) error {
-		cfg, user, err := db.getPullCfg(tx, poolId, uid)
-		if err != nil {
-			return err
-		}
-
-		characters, err := db.getCharacters(tx, poolId)
-		if err != nil {
-			return err
-		}
-
-		switch pullCount {
-		case 1:
-			results = []models.Character{utils.Pull(cfg, characters, user)}
-		case 10:
-			results = utils.PullTen(cfg, characters, user)
-		default:
-			results = nil
-			return gorm.ErrInvalidData
-		}
 
 		var characterIds []uint
 		for _, char := range results {
@@ -83,10 +62,10 @@ func (db *Database) PullAndUpdate(uid, poolId uint, pullCount int) ([]models.Cha
 	})
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return results, nil
+	return nil
 }
 
 // 创建抽卡记录
@@ -202,4 +181,12 @@ func (db *Database) GetPoolInfo(poolId uint) (models.GachaPool, error) {
 		return models.GachaPool{}, err
 	}
 	return pool, nil
+}
+
+func (db *Database) GetPoolConfigs() ([]models.GachaPoolConfig, error) {
+	var configs []models.GachaPoolConfig
+	if err := db.DB.Find(&configs).Error; err != nil {
+		return nil, err
+	}
+	return configs, nil
 }

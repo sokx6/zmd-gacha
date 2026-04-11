@@ -19,3 +19,11 @@ func (db *Database) GetCharFirstInfo(uid uint, characterId uint) (*models.UserCh
 	}
 	return &userCharacter, nil
 }
+
+func (db *Database) GetUserPool(uid, poolId uint) (models.UserPool, error) {
+	var userPool models.UserPool
+	if err := db.DB.Where("user_id = ? AND pool_id = ?", uid, poolId).First(&userPool).Error; err != nil {
+		return models.UserPool{}, err
+	}
+	return userPool, nil
+}
