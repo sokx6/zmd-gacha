@@ -11,6 +11,10 @@ import (
 
 // 创建角色
 func (db *Database) CreateCharacter(name string, rank string, isLimited bool, isUp bool) (models.Character, error) {
+	if rank != "S" {
+		isLimited = false
+		isUp = false
+	}
 	character := models.Character{
 		Name:      name,
 		Rank:      rank,
