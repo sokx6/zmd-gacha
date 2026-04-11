@@ -49,6 +49,7 @@ type PoolCreateRsp struct {
 	PoolID  uint   `json:"pool_id"`
 	Message string `json:"message"`
 }
+
 type InsertCharRsp struct {
 	Message string `json:"message"`
 }
@@ -62,9 +63,16 @@ type PoolInfoRsp struct {
 	Pool    models.GachaPool `json:"pool"`
 	Message string           `json:"message"`
 }
+
 type CharFirstInfoRsp struct {
 	Message                string    `json:"message"`
 	FirstAcquiredAt        time.Time `json:"first_acquired_at,omitempty"`
 	FirstAcquiredPool      uint      `json:"first_acquired_pool,omitempty"`
 	FirstAcquiredPullCount int       `json:"first_acquired_pull_count,omitempty"`
+}
+
+type PoolConfigUpdateRsp struct {
+	PoolID  uint   `json:"pool_id"`
+	Version uint64 `json:"version"`
+	Message string `json:"message"`
 }

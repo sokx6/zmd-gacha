@@ -2,18 +2,23 @@ package service
 
 import (
 	"net/http"
+	"sync/atomic"
 	"zmd-gacha/internal/management/database"
+	management_grpc "zmd-gacha/internal/management/grpc"
 	"zmd-gacha/internal/models"
 	"zmd-gacha/internal/types"
 )
 
 type GachaService struct {
-	DB *database.Database
+	DB      *database.Database
+	Hub     *management_grpc.ConfigHub
+	version atomic.Uint64
 }
 
-func NewGachaService(db *database.Database) *GachaService {
+func NewGachaService(db *database.Database, hub *management_grpc.ConfigHub) *GachaService {
 	return &GachaService{
-		DB: db,
+		DB:  db,
+		Hub: hub,
 	}
 }
 
@@ -38,4 +43,16 @@ func (gs *GachaService) InsertCharacterToPool(poolId uint, characterId uint) err
 		return types.NewAppError(http.StatusInternalServerError, "插入角色到卡池错误", err)
 	}
 	return nil
+}
+
+func (gs *GachaService) UpdatePoolConfig(cfg models.GachaPoolConfig) (uint64, error) {
+	if err := gs.DB.UpdatePoolConfig(cfg); err != nil {
+		return 0, types.NewAppError(http.StatusInternalServerError, "更新卡池配置错误", err)
+	}
+
+	newVersion := gs.version.Add(1)
+	if gs.Hub != nil {
+		gs.Hub.Publish(management_grpc.ConfigUpdateEvent{Version: newVersion, Config: cfg})
+	}
+	return newVersion, nil
 }

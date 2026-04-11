@@ -11,6 +11,7 @@ type Config struct {
 	App      AppConfig
 	Database DataBaseConfig
 	Auth     AuthConfig
+	Grpc     GrpcConfig
 }
 
 // 应用配置，只是监听的地址和端口
@@ -27,6 +28,11 @@ type DataBaseConfig struct {
 
 type AuthConfig struct {
 	PublicKeyPath string `toml:"public_key_path"`
+}
+
+type GrpcConfig struct {
+	ManagementAddr string `toml:"management_addr"`
+	ServerID       string `toml:"server_id"`
 }
 
 // 加载配置函数，需要指定路径

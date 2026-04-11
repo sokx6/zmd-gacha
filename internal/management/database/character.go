@@ -9,40 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// 创建或者更新卡池和响应设置
-func (db *Database) CreatePool(pool models.GachaPool, config models.GachaPoolConfig) (uint, error) {
-	gachaPool := models.GachaPool{
-		Name:        pool.Name,
-		Description: pool.Description,
-		StartAt:     pool.StartAt,
-		EndAt:       pool.EndAt,
-		IsActive:    pool.IsActive,
-	}
-	tx := db.DB.Begin()
-	if err := tx.Save(&gachaPool).Error; err != nil {
-		tx.Rollback()
-		return 0, err
-	}
-	gachaPoolConfig := models.GachaPoolConfig{
-		PoolID:               gachaPool.ID,
-		SRankBaseRate:        config.SRankBaseRate,
-		ARankBaseRate:        config.ARankBaseRate,
-		AGuaranteeInterval:   config.AGuaranteeInterval,
-		SPityStart:           config.SPityStart,
-		SPityStep:            config.SPityStep,
-		SPityEnd:             config.SPityEnd,
-		LimitPity:            config.LimitPity,
-		LimitRateWhenS:       config.LimitRateWhenS,
-		MaxLimitedCharacters: config.MaxLimitedCharacters,
-	}
-
-	if err := tx.Save(&gachaPoolConfig).Error; err != nil {
-		tx.Rollback()
-		return 0, err
-	}
-	return gachaPool.ID, tx.Commit().Error
-}
-
 // 创建角色
 func (db *Database) CreateCharacter(name string, rank string, isLimited bool, isUp bool) (models.Character, error) {
 	character := models.Character{

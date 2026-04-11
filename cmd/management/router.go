@@ -28,4 +28,5 @@ func RegisterRoutes(e *echo.Echo, authHandler *handler.AuthHandler, userHandler 
 	admin.POST("/characters", gachaHandler.CreateCharacter)
 	admin.POST("/pools", gachaHandler.CreatePool)
 	admin.POST("/pools/characters", gachaHandler.InsertCharacterToPool)
+	admin.PUT("/pools/config", gachaHandler.UpdatePoolConfig)
 }

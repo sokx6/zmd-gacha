@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"zmd-gacha/internal/game/config"
 	"zmd-gacha/internal/game/database"
@@ -33,6 +34,7 @@ func NewServer(cfg_path string) *GameServer {
 	authService := service.NewAuthService(db, cfg.Auth)
 	authMiddleware := middleware.NewAuthMiddleware(authService)
 	gachaService := service.NewGachaService(db)
+	go service.StartConfigWatcher(context.Background(), cfg.Grpc.ManagementAddr, cfg.Grpc.ServerID, gachaService)
 	gachaHandler := handler.NewGachaHandler(gachaService)
 	userService := service.NewUserService(db)
 	userHandler := handler.NewUserHandler(userService)

@@ -3,6 +3,8 @@ package service
 import (
 	"errors"
 	"net/http"
+	"sync"
+	"sync/atomic"
 	"zmd-gacha/internal/game/database"
 	"zmd-gacha/internal/models"
 	"zmd-gacha/internal/types"
@@ -12,8 +14,15 @@ import (
 )
 
 type GachaService struct {
-	DB              *database.Database
-	GachaPoolConfig []models.GachaPoolConfig
+	DB *database.Database
+
+	configSnapshot atomic.Value
+	updateMu       sync.Mutex
+}
+
+type poolConfigSnapshot struct {
+	Version uint64
+	Pools   map[uint]models.GachaPoolConfig
 }
 
 func NewGachaService(db *database.Database) *GachaService {
@@ -21,19 +30,52 @@ func NewGachaService(db *database.Database) *GachaService {
 	if err != nil {
 		panic("无法加载卡池配置: " + err.Error())
 	}
-	return &GachaService{
-		DB:              db,
-		GachaPoolConfig: gachaPoolConfigs,
+	pools := make(map[uint]models.GachaPoolConfig, len(gachaPoolConfigs))
+	for _, cfg := range gachaPoolConfigs {
+		pools[cfg.PoolID] = cfg
 	}
+
+	gs := &GachaService{DB: db}
+	gs.configSnapshot.Store(&poolConfigSnapshot{Version: 0, Pools: pools})
+	return gs
+
+}
+
+func (gs *GachaService) loadSnapshot() *poolConfigSnapshot {
+	if v := gs.configSnapshot.Load(); v != nil {
+		return v.(*poolConfigSnapshot)
+	}
+	return &poolConfigSnapshot{Version: 0, Pools: map[uint]models.GachaPoolConfig{}}
 }
 
 func (gs *GachaService) getPoolConfig(poolId uint) (*models.GachaPoolConfig, error) {
-	for _, cfg := range gs.GachaPoolConfig {
-		if cfg.PoolID == poolId {
-			return &cfg, nil
-		}
+	snap := gs.loadSnapshot()
+	cfg, ok := snap.Pools[poolId]
+	if ok {
+		return &cfg, nil
 	}
 	return nil, errors.New("未找到对应的卡池配置")
+}
+
+func (gs *GachaService) ApplyConfigUpdate(version uint64, cfg models.GachaPoolConfig) {
+	gs.updateMu.Lock()
+	defer gs.updateMu.Unlock()
+
+	oldSnap := gs.loadSnapshot()
+	if version <= oldSnap.Version {
+		return
+	}
+
+	nextPools := make(map[uint]models.GachaPoolConfig, len(oldSnap.Pools)+1)
+	for k, v := range oldSnap.Pools {
+		nextPools[k] = v
+	}
+	nextPools[cfg.PoolID] = cfg
+
+	gs.configSnapshot.Store(&poolConfigSnapshot{
+		Version: version,
+		Pools:   nextPools,
+	})
 }
 
 func (gs *GachaService) pull(poolId uint, uid uint, pullCount int) ([]models.Character, error) {

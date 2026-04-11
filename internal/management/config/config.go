@@ -11,6 +11,7 @@ type Config struct {
 	App      AppConfig
 	Database DataBaseConfig
 	Auth     AuthConfig
+	Grpc     GrpcConfig
 }
 
 // 应用配置，只是监听的地址和端口
@@ -32,6 +33,11 @@ type AuthConfig struct {
 	AccessTokenExpire  int    `toml:"access_token_expire"`
 	RefreshTokenLength int    `toml:"refresh_token_length"`
 	RefreshTokenExpire int    `toml:"refresh_token_expire"`
+}
+
+type GrpcConfig struct {
+	Host string `toml:"host"`
+	Port uint16 `toml:"port"`
 }
 
 // 加载配置函数，需要指定路径

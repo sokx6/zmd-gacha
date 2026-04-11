@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package configsync.v1;
+
+option go_package = "zmd-gacha/internal/shared/pb/config;config";
+
+message SubscribeRequest {
+  string server_id = 1;     // game-server 实例标识
+  uint64 last_version = 2;  // 可选：断线重连时告诉服务端已处理版本
+}
+
+message PoolConfig {
+  uint32 pool_id = 1;
+  double s_rank_base_rate = 2;
+  double a_rank_base_rate = 3;
+  int32 a_guarantee_interval = 4;
+  int32 s_pity_start = 5;
+  double s_pity_step = 6;
+  int32 s_pity_end = 7;
+  int32 limit_pity = 8;
+  double limit_rate_when_s = 9;
+  int32 max_limited_characters = 10;
+}
+
+message ConfigUpdate {
+  uint64 version = 1;          // 单调递增版本号
+  int64 updated_at_unix_ms = 2;
+  PoolConfig config = 3;
+}
+
+service ConfigSyncService {
+  // 服务端流：客户端发一次订阅请求，服务端持续推送变更
+  rpc SubscribePoolConfig(SubscribeRequest) returns (stream ConfigUpdate);
+}
