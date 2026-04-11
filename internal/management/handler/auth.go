@@ -62,7 +62,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, types.UserLoginRsp{
 			Message: "不合法请求",
 		})
-	} else if req.Username == "" || req.Password == "" || req.UID == 0 || req.Email == "" {
+	} else if (req.Username == "" && req.UID == 0 && req.Email == "") || req.Password == "" {
 		return c.JSON(http.StatusBadRequest, types.UserLoginRsp{
 			Message: "用户名或uid或邮箱密码不能为空",
 		})
@@ -97,6 +97,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 	return c.JSON(http.StatusOK, types.UserLoginRsp{
 		Code:         http.StatusOK,
 		Message:      "登录成功",
+		Role:         role,
 		RefreshToken: refreshToken,
 		AccessToken:  accessToken,
 	})

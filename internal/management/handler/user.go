@@ -49,7 +49,7 @@ func (h *UserHandler) GetUserCharacters(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, types.NewCharsGetRsp(characters, http.StatusOK, "获取角色列表成功"))
+	return c.JSON(http.StatusOK, types.NewCharsGetRsp(uid, characters, http.StatusOK, "获取角色列表成功"))
 }
 
 func (h *UserHandler) GetCharFirstInfo(c echo.Context) error {

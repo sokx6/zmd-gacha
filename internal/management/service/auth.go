@@ -3,10 +3,12 @@ package service
 import (
 	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	"zmd-gacha/internal/management/config"
 	"zmd-gacha/internal/management/database"
+	"zmd-gacha/internal/models"
 	"zmd-gacha/internal/types"
 	"zmd-gacha/internal/utils"
 
@@ -17,6 +19,8 @@ type AuthService struct {
 	DB  *database.Database
 	Cfg config.AuthConfig
 }
+
+const reservedAdminUID uint = 1000000000
 
 func NewAuthService(db *database.Database, cfg config.AuthConfig) *AuthService {
 	return &AuthService{DB: db, Cfg: cfg}
@@ -31,8 +35,8 @@ func (s *AuthService) Register(username, password, email, nickname, profile stri
 
 	var role string
 
-	switch username {
-	case "admin":
+	switch {
+	case strings.EqualFold(username, "admin"):
 		role = "admin"
 	default:
 		role = "user"
@@ -47,7 +51,7 @@ func (s *AuthService) Register(username, password, email, nickname, profile stri
 		}
 		db.UIDs.Store(uid, true)
 	case "admin":
-		uid = 1000000000
+		uid = reservedAdminUID
 	}
 
 	if err = db.RegisterUser(username, hashed_pwd, email, role, nickname, profile, uid); err != nil {
@@ -91,7 +95,8 @@ func (s *AuthService) Login(username, password string, uid uint, email string) (
 		}
 	}
 
-	return isValid, uid, dbUser.Role, nil
+	role := resolveUserRole(*dbUser)
+	return isValid, uid, role, nil
 }
 
 func (s *AuthService) Logout(uid uint, token string) error {
@@ -127,6 +132,11 @@ func (s *AuthService) RefreshToken(uid uint, refreshToken string) (string, strin
 		} else {
 			return "", "", types.NewAppError(http.StatusInternalServerError, "数据库错误", err)
 		}
+	}
+
+	// Keep role resolution consistent with login path.
+	if dbUser, getUserErr := s.DB.GetUserByUID(uid); getUserErr == nil {
+		role = resolveUserRole(*dbUser)
 	}
 
 	newRefreshToken, err := s.GenerateRefreshToken(uid)
@@ -179,4 +189,14 @@ func (s *AuthService) GenerateAdminAccessToken(uid uint) (string, error) {
 		return "", types.NewAppError(http.StatusInternalServerError, "生成访问令牌失败", err)
 	}
 	return token, nil
+}
+
+func resolveUserRole(user models.User) string {
+	if user.UID == reservedAdminUID || strings.EqualFold(user.Username, "admin") {
+		return "admin"
+	}
+	if user.Role == "" {
+		return "user"
+	}
+	return user.Role
 }

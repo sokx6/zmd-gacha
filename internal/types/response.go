@@ -15,6 +15,7 @@ type UserRstRsp struct {
 type UserLoginRsp struct {
 	Code         int    `json:"code,omitempty"`
 	Message      string `json:"message"`
+	Role         string `json:"role,omitempty"`
 	AccessToken  string `json:"access_token,omitempty"`
 	RefreshToken string `json:"refresh_token,omitempty"`
 }
@@ -66,6 +67,7 @@ type InsertCharRsp struct {
 }
 
 type CharsGetRsp struct {
+	UID        uint               `json:"uid"`
 	Characters []UserCharacterRsp `json:"characters"`
 	Code       int                `json:"code,omitempty"`
 	Message    string             `json:"message"`
@@ -77,19 +79,6 @@ type PoolInfoRsp struct {
 	Message string       `json:"message"`
 }
 
-type UserRsp struct {
-	UID            uint          `json:"UID"`
-	Username       string        `json:"Username"`
-	Nickname       string        `json:"Nickname"`
-	Profile        string        `json:"Profile"`
-	Password       string        `json:"password"`
-	Email          string        `json:"Email"`
-	Role           string        `json:"Role"`
-	UserCharacters []interface{} `json:"UserCharacters"`
-	GachaRecords   []interface{} `json:"GachaRecords"`
-	UserPools      []interface{} `json:"UserPools"`
-}
-
 type CharacterRsp struct {
 	ID        uint   `json:"id"`
 	Name      string `json:"name"`
@@ -99,15 +88,13 @@ type CharacterRsp struct {
 }
 
 type UserCharacterRsp struct {
-	UserID                 uint         `json:"UserID"`
-	User                   UserRsp      `json:"User"`
-	CharacterID            uint         `json:"CharacterID"`
-	Character              CharacterRsp `json:"Character"`
-	OwnedCount             int          `json:"OwnedCount"`
-	Level                  int          `json:"Level"`
-	FirstAcquiredAt        time.Time    `json:"FirstAcquiredAt"`
-	FirstAcquiredPool      uint         `json:"FirstAcquiredPool"`
-	FirstAcquiredPullCount int          `json:"FirstAcquiredPullCount"`
+	CharacterID            uint         `json:"character_id"`
+	Character              CharacterRsp `json:"character"`
+	OwnedCount             int          `json:"owned_count"`
+	Level                  int          `json:"level"`
+	FirstAcquiredAt        time.Time    `json:"first_acquired_at"`
+	FirstAcquiredPool      uint         `json:"first_acquired_pool"`
+	FirstAcquiredPullCount int          `json:"first_acquired_pull_count"`
 }
 
 type GachaPoolConfigRsp struct {
@@ -158,13 +145,14 @@ type GachaPoolRsp struct {
 	IsActive            bool                    `json:"is_active"`
 }
 
-func NewCharsGetRsp(characters []models.UserCharacter, code int, message string) CharsGetRsp {
+func NewCharsGetRsp(uid uint, characters []models.UserCharacter, code int, message string) CharsGetRsp {
 	items := make([]UserCharacterRsp, 0, len(characters))
 	for _, character := range characters {
 		items = append(items, mapUserCharacter(character))
 	}
 
 	return CharsGetRsp{
+		UID:        uid,
 		Characters: items,
 		Code:       code,
 		Message:    message,
@@ -181,8 +169,6 @@ func NewPoolInfoRsp(pool models.GachaPool, code int, message string) PoolInfoRsp
 
 func mapUserCharacter(character models.UserCharacter) UserCharacterRsp {
 	return UserCharacterRsp{
-		UserID:                 character.UserID,
-		User:                   mapUser(character.User),
 		CharacterID:            character.CharacterID,
 		Character:              mapCharacter(character.Character),
 		OwnedCount:             character.OwnedCount,
@@ -190,21 +176,6 @@ func mapUserCharacter(character models.UserCharacter) UserCharacterRsp {
 		FirstAcquiredAt:        character.FirstAcquiredAt,
 		FirstAcquiredPool:      character.FirstAcquiredPool,
 		FirstAcquiredPullCount: character.FirstAcquiredPullCount,
-	}
-}
-
-func mapUser(user models.User) UserRsp {
-	return UserRsp{
-		UID:            user.UID,
-		Username:       user.Username,
-		Nickname:       user.Nickname,
-		Profile:        user.Profile,
-		Password:       user.Password,
-		Email:          user.Email,
-		Role:           user.Role,
-		UserCharacters: nil,
-		GachaRecords:   nil,
-		UserPools:      nil,
 	}
 }
 
